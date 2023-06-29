@@ -61,6 +61,47 @@ requires validJobsSeq(jobs)
     isPartialSolution(solution, jobs, |jobs|)
 }
 
+function Sum(a: int, b: int): int
+ensures Sum(a, b) == a + b
+{
+    a + b
+}
+
+
+function JobProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
+requires 0 <= index < |solution|
+requires 0 <= index < |jobs|
+ensures JobProfit(solution, jobs, index) == solution[index] * jobs[index].profit
+{
+    solution[index] * jobs[index].profit
+}
+
+//intrebarea 1 : Cum as putea scrie ensures?
+function ProfitRecursiveHelper(solution: seq<int>, jobs: seq<Job>, index: int): int
+requires |solution| == |jobs|
+requires 0 <= index <= |solution|
+requires 0 <= index <= |jobs|
+requires 0 <= |jobs|
+requires 0 <= |solution|
+decreases |solution| - index 
+decreases |jobs| - index 
+//ensures ProfitRecursiveHelper(solution, jobs, index) == (profit | 0 <= i < |solution| :: profit + JobProfit(solution, jobs, i)) //in variabila totalProfit se aduna profiturile pana ajungem la ultimul index 
+//deci ar trebui sa fie o suma de la job[0] la job[|jobs|] 
+//ensures ProfitRecursiveHelper(solution, jobs, index ) == solution[index] * jobs[index].profit + ProfitRecursiveHelper(solution, jobs, index + 1)
+{   
+
+    if index == |solution| then 0 else solution[index] * jobs[index].profit + ProfitRecursiveHelper(solution, jobs, index + 1)
+}
+
+
+ghost predicate isOptimalSolution(solution: seq<int>, jobs: seq<Job>)
+requires validJobsSeq(jobs) // este in regula ?
+requires |solution| == |jobs|
+//profit == dp
+{ 
+    isSolution(solution, jobs) && 
+    forall otherSol :: isSolution(otherSol, jobs) ==>  ProfitRecursiveHelper(solution, jobs, 0) >=  ProfitRecursiveHelper(otherSol, jobs, 0)
+}
 
 predicate hasNoOverlappingJobs(partialSol: seq<int>, jobs: seq<Job>)
 requires validJobsSeq(jobs)
@@ -78,20 +119,20 @@ requires validJobsSeq(jobs)
 }
 
 
-
 function reverseSeq(inputSeq: seq<int>) : seq<int>
 ensures |inputSeq| == |reverseSeq(inputSeq)| //are aceeasi lungime 
 //ensures forall i :: 0 <= i < |inputSeq| ==> inputSeq[i] == reverseSeq(inputSeq)[|inputSeq| - i - 1] //elementele sunt aceleasi dar inversate
 ensures forall i :: 0 <= i < |inputSeq| ==> reverseSeq(inputSeq)[i] == inputSeq[|inputSeq| - i - 1]
  //seq de 0 si 1 si pe pozitia i este seq[|lngth|-i -1 ] aceleasi
-//reverse intoarce tot o secventa de job-uri care nu se suprapun 
-//lemma pt care sa demonstrez ca daca 1,0,0,1 nu se suprapun nici invers nu se suprapun 1,0,0,1  
+//reverse intoarce o secventa de job-uri care nu se suprapun, doar in unele cazuri  
+//1011 -> 1101
 {
   if |inputSeq| == 0 then
     inputSeq
   else
     reverseSeq(inputSeq[1..]) + [inputSeq[0]]
 }
+
 
 
 predicate ValidPartialSolutions(allSol:seq<seq<int>>, jobs: seq<Job>,  index: int)
@@ -101,12 +142,6 @@ requires validJobsSeq(jobs)
 
 }
 
-// lemma ReversedSeqIsAlsoNotOverlapping(notOverlappSeq :seq<int>, jobs: seq<Job>)
-// requires validJobsSeq(jobs)
-// ensures hasNoOverlappingJobs(reverseSeq(notOverlappSeq), jobs)
-// {
-
-// }
 predicate JobBefore(job1:Job, job2: Job)
 requires validJob(job1)
 requires validJob(job2)
@@ -114,48 +149,7 @@ requires validJob(job2)
    job2.jobEnd <= job1.jobStart
 }
 
-//a nu se lua in considerare
-//aceasta lemma ar trebui sa-mi demonstreze ca reversed(solutiePartialaFinala) contine job-uri care nu se suprapun
-lemma Add2NotOverlappingSeqIsAlsoANotOverlappingSeq(seq1 : seq<int>, seq2: seq<int>, i: int , j: int , allSol:seq<seq<int>>, jobs: seq<Job>)
-requires validJobsSeq(jobs)
-requires 0 <= j < i < |jobs|
-requires hasNoOverlappingJobs(seq1, jobs)
-requires |seq2| == j + 1
-requires |seq1| + |seq2| <= |jobs|  //presupunem ca deja este inversata 
-//seq2 este solutia partiala pt job-ul de pe pozitia j , unde jobs[j].end <= jobs[i].start
-requires hasNoOverlappingJobs(seq2, jobs)
-//requires ValidPartialSolutions(allSol, jobs, i)
-requires isPartialSolution(seq2, jobs, j + 1)
-requires JobBefore(jobs[i], jobs[j])
-ensures hasNoOverlappingJobs(seq1 + seq2, jobs)
-{  
-    //vreau sa demonstrez ca 
-    //seq1 + seq2(inversata) = sum , care doar reversed(sum) este !Overlapping, deci daca nu o intoarcem nu avem cum sa demonstram 
-    //ca solutia partiala este !overlapp 
-    //seq2 este allSol[j]
-    assert JobBefore(jobs[i], jobs[j]);
-    var sum : seq<int> := [];
-    var k := 0; //0 1 2 , j = 2 , k == 2 k == j 
-    while k <= j //|seq2| - 1
-        invariant 0 <= k <= j + 1
-        decreases |seq2| - k - 1
-        invariant k <= j ==> 0 <= |sum| <= 
-        //invariant JobBefore(jobs[k], jobs[i])
-        //invariant hasNoOverlappingJobs(sum, jobs) //verifica pt reverseSeq(seq)
-        {   
-            if k >= 0 && k <= j
-            {
-                sum := sum + [seq2[k]];
-                assert hasNoOverlappingJobs(sum, jobs);
-            }
-        
-         k := k + 1;
-        }
-    
-}
-
-
-
+// intrebarea 2 : cum demonstrez ca subSol econtine job-uri care nu se suprapun ?
 method MaxProfit(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>) returns (maxProfit:int, solution: seq<int>)
 requires |jobs| >= 2
 requires validJobsSeq(jobs)
@@ -167,8 +161,6 @@ requires 1 <= |allSol| <= |jobs|
 requires |allSol| == i 
 requires ValidPartialSolutions(allSol, jobs, i) //cerem ca all sol sa contina doar secvente de 0 si 1 si pentru toate 0 <= j < i allSol[j] == j + 1
 ensures isPartialSolution(solution, jobs, i + 1)
-//requires(allSol)
-
 {       
        //max profit intoarce si solutia
         var max_profit := jobs[i].profit;
@@ -195,45 +187,38 @@ ensures isPartialSolution(solution, jobs, i + 1)
             //job-ul j poate sa se termine la ora la care job-ul i incepe 
             if (jobs[j].jobEnd <= jobs[i].jobStart && j < |dp| && j < |allSol|) {
                 max_profit := max_profit + dp[j];
-                assert JobBefore(jobs[i], jobs[j]);
                 assert |subSol| == length;
                 ghost var length' := length;
-                assert forall i :: 0 <= i <= length' - 1  ==> hasNoOverlappingJobs(subSol, jobs);
+                assert  hasNoOverlappingJobs(subSol, jobs);
                 assert isPartialSolution(subSol, jobs, length');
                 assert !overlappingJobs(jobs[j], jobs[i]);
                 assert hasNoOverlappingJobs(allSol[j], jobs);
                 assert forall k, m :: 0 <= k < m < |allSol[j]| ==> (allSol[j][k] == 1 && allSol[j][m] == 1 ) ==>!overlappingJobs(jobs[k], jobs[m]);
                 length := length + |allSol[j]|; //|allSol[j]| are lungimea j + 1, se stie din ipoteza (length + j + 1 nu este > i + 1)
                 assert jobs[j].jobEnd <= jobs[i].jobStart;
-                Add2NotOverlappingSeqIsAlsoANotOverlappingSeq(subSol, allSol[j], i, j, allSol, jobs);
-                subSol := subSol + reverseSeq(allSol[j]); //trebuie sa ne asiguram ca allSol este format din solutii partiale (did it)
-                //si ca functia reverse intoarce tot o secventa de job-uri care nu se suprapun (acest lucru nu poate fi demonstrat deoarece nu este adevarat)
-                //problema nu e de la reverse ci de la adunare (momentan), va fi si de la reverse 
-                //ReversedSeqIsAlsoNotOverlapping(reverseSeq(allSol[j]), jobs); //doar reverse de solutie partiala finala contine job-uri care nu se suprapun
-                //assert hasNoOverlappingJobs(reverseSeq(allSol[j]), jobs);
                 assert hasNoOverlappingJobs(subSol, jobs);
-                //lemma pentru reverseSeq()
+                subSol := allSol[j] + subSol;//trebuie sa ne asiguram ca allSol este format din solutii partiale (did it))
+                //assert hasNoOverlappingJobs(subSol, jobs);
                 assert |subSol| == length;
-                //assert forall i :: 0 <= i < |allSol[j]| ==> allSol[j][i] == reverseSeq(allSol[j])[|allSol[j]| - i - 1];
-                assert forall k :: 0 <= k < |allSol[j]| ==> reverseSeq(allSol[j])[k] == allSol[j][|allSol[j]| - k - 1];
                 assert forall i :: 0 <= i <= length' - 1  ==> 0 <= subSol[i] <= 1;
                 assert isPartialSolution(allSol[j], jobs, j + 1);
                 assert forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1;
                 assert ValidPartialSolutions(allSol, jobs, i);
-                assert forall i :: 0 <= i <= length - 1  ==> hasNoOverlappingJobs(subSol, jobs);
-                assert isPartialSolution(subSol, jobs, length);
-                //aici as putea avea o lema care sa demonstreze ca reversed(subSol) este !overlapp, reversed dupa adunare !!
-
-            
                 break;
             }
             else
             {   
+                //pe aceasta ramura vom avea 1,0,0 de ex unde reverse
                 length := length + 1;
-                subSol := subSol + [0]; //as adauga i zerouri de ex pt i = 1 adaug 1, pt i = 2 adaug 2 (pozitiile 1, 0 verific)  
+                subSol := [0] + subSol; //as adauga i zerouri de ex pt i = 1 adaug 1, pt i = 2 adaug 2 (pozitiile 1, 0 verific)  
+                assert forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1;
+                assert hasNoOverlappingJobs(subSol, jobs);
+                //assert isPartialSolution(reverseSeq(subSol), jobs, length); //este adevarat pt ca in acest punct avem doar o valoare si adaugam zerouri
+                //doar ca job-urile verificate nu sunt cele din secventa subSol  ex daca am 1,0 este job-ul i, i-1, iar cand intoarcem verificam pt job-ul 0 si job-ul 1
+                //practic verificam primele |subSol| job-uri in loc de ultimele |subSol| job-uri  
                 assert isPartialSolution(subSol, jobs, length);
                 //solutia partiala se formeaza de la sfarsit spre inceputul listei cu job-uri
-                //deci nu pot demonstra !overlappSeq deoarece pe prima pozitie va fi job-ul de index (|jobs| - 1) s.a.m.d
+                //deci nu pot demonstra !overlappSeq deoarece pe prima pozitie va fi job-ul de index i, apoi i-1.. , unde i va avea pe rand valorile 1,2,3 s.a.m.d
                 //iar in predicatul isPartialSolution am nevoie de o solutiePartiala ordonata/reprezentativa secventei de job-uri 
                 // adica index 0 este pentru jobs[0] s.a.m.d
             }
@@ -241,9 +226,13 @@ ensures isPartialSolution(solution, jobs, i + 1)
 
             
         } 
-        
+
         maxProfit := max_profit;
-        solution := reverseSeq(subSol);
+        solution := subSol;
+        // assert |solution| == length;
+        // assert forall i :: 0 <= i <= length - 1 ==> 0 <= solution[i] <= 1;
+        // assert hasNoOverlappingJobs(solution, jobs);
+        assert isPartialSolution(solution, jobs, length);
         // print("Sulutiile ", solution);
         //abia la sf pot demonstra ca solution este solutie partiala deoarece solutia este ordonata conform cu secventa de job-uri
 
@@ -254,9 +243,9 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>)
     requires validJobsSeq(jobs)
     requires distinctJobsSeq(jobs)
     requires sortedByActEnd(jobs)
-    //ensures isSolution(sol)
+    // ensures isSolution(sol, jobs)
+    // ensures isOptimalSolution(sol, jobs)
     //ensures isOptimalSolution(sol)
-    //ensures ValidPartialSolutions(allSol, jobs, )
 
 {   
     var dp :seq<int> := [];
