@@ -26,11 +26,19 @@ requires validJobsSeq(s)
     forall i, j :: 0 <= i < j < |s| ==> differentJobs(s[i], s[j])
 }
 
+predicate notOverlappingJobs(jobs:seq<Job>, j: int, i: int)
+requires 0 <= j < i < |jobs|
+requires validJob(jobs[i])
+requires validJob(jobs[j])
+{
+    !overlappingJobs(jobs[j], jobs[i])
+}
+
 predicate overlappingJobs(j1:Job, j2:Job)
 requires validJob(j1)
 requires validJob(j2)
 {
-    j1.jobEnd > j2.jobStart && j1.jobStart < j2.jobEnd // nu se suprapun 
+    j1.jobEnd > j2.jobStart &&  j2.jobEnd > j1.jobStart  // nu se suprapun 
     //primul job se termina inainte ca al 2-lea sa inceapa (j1, j2), si primul job incepe inainte ca al 2-lea sa se termine (j2, j1)
     //ele fiind deja ordonate dupa timpul de finish 
 }
@@ -57,26 +65,18 @@ function Max(a: int, b: int): int
 predicate isSolution(solution: seq<int>, jobs: seq <Job>) //sa primeasca si datele de intrare (problema) , solutie pt porblema, not overlap
 requires validJobsSeq(jobs)
 { 
-    //daca solution[i] == 1 apelez !overlapping ==> if
     isPartialSolution(solution, jobs, |jobs|)
 }
 
-function Sum(a: int, b: int): int
-ensures Sum(a, b) == a + b
-{
-    a + b
-}
+// function JobProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
+// requires 0 <= index < |solution|
+// requires 0 <= index < |jobs|
+// ensures JobProfit(solution, jobs, index) == solution[index] * jobs[index].profit
+// {
+//     solution[index] * jobs[index].profit
+// }
 
-
-function JobProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
-requires 0 <= index < |solution|
-requires 0 <= index < |jobs|
-ensures JobProfit(solution, jobs, index) == solution[index] * jobs[index].profit
-{
-    solution[index] * jobs[index].profit
-}
-
-//intrebarea 1 : Cum as putea scrie ensures?
+//intrebarea 1 : Cum as putea scrie ensures? REZOLVAT 
 function ProfitRecursiveHelper(solution: seq<int>, jobs: seq<Job>, index: int): int
 requires |solution| == |jobs|
 requires 0 <= index <= |solution|
@@ -85,14 +85,11 @@ requires 0 <= |jobs|
 requires 0 <= |solution|
 decreases |solution| - index 
 decreases |jobs| - index 
-//ensures ProfitRecursiveHelper(solution, jobs, index) == (profit | 0 <= i < |solution| :: profit + JobProfit(solution, jobs, i)) //in variabila totalProfit se aduna profiturile pana ajungem la ultimul index 
-//deci ar trebui sa fie o suma de la job[0] la job[|jobs|] 
-//ensures ProfitRecursiveHelper(solution, jobs, index ) == solution[index] * jobs[index].profit + ProfitRecursiveHelper(solution, jobs, index + 1)
+ensures ProfitRecursiveHelper(solution, jobs, index ) == if index == |solution| then 0 else solution[index] * jobs[index].profit + ProfitRecursiveHelper(solution, jobs, index + 1)
 {   
 
     if index == |solution| then 0 else solution[index] * jobs[index].profit + ProfitRecursiveHelper(solution, jobs, index + 1)
 }
-
 
 ghost predicate isOptimalSolution(solution: seq<int>, jobs: seq<Job>)
 requires validJobsSeq(jobs) // este in regula ?
@@ -133,8 +130,6 @@ ensures forall i :: 0 <= i < |inputSeq| ==> reverseSeq(inputSeq)[i] == inputSeq[
     reverseSeq(inputSeq[1..]) + [inputSeq[0]]
 }
 
-
-
 predicate ValidPartialSolutions(allSol:seq<seq<int>>, jobs: seq<Job>,  index: int)
 requires validJobsSeq(jobs)
 {   
@@ -142,14 +137,116 @@ requires validJobsSeq(jobs)
 
 }
 
-predicate JobBefore(job1:Job, job2: Job)
-requires validJob(job1)
-requires validJob(job2)
+// predicate JobBefore(job1:Job, job2: Job)
+// requires validJob(job1)
+// requires validJob(job2)
+// {
+//    job2.jobEnd <= job1.jobStart
+// }
+
+predicate hasNoOverlappingJobs2(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
+requires validJobsSeq(jobs)
+requires 0 <= j <= i < |jobs|
+requires i - j + 1 == |partialSol|
 {
-   job2.jobEnd <= job1.jobStart
+    |partialSol| <= |jobs|  && forall x, y :: 0 <= x < y < |partialSol| ==>
+        (partialSol[x] == 1 && partialSol[y] == 1) ==> !overlappingJobs(jobs[j + x], jobs[j + y]) 
 }
 
+// predicate hasJust0(partialSol: seq<int>, jobs: seq<Job>)
+// requires validJobsSeq(jobs)
+// // requires 0 <= j < i < |jobs|
+// // requires i - j + 1 == |partialSol|
+// {
+//     |partialSol| <= |jobs|  && forall x :: 0 <= x < |partialSol| - 1 ==> partialSol[x] == 0
+// }
+
+
+predicate areOrderedByEnd(partialSol: seq<int>, jobs: seq<Job>)
+requires validJobsSeq(jobs)
+{
+   |partialSol| <= |jobs|  && forall i, j :: 0 <= i < j < |partialSol| ==>
+        (partialSol[i] == 1 && partialSol[j] == 1) ==> JobComparator(jobs[i], jobs[j]) 
+}
+
+
+predicate areOrderedByEnd2(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
+requires validJobsSeq(jobs)
+requires 0 <= j <= i < |jobs|
+requires i - j + 1 == |partialSol|
+{
+    |partialSol| <= |jobs|  && forall x, y :: 0 <= x < y < |partialSol| ==>
+        (partialSol[x] == 1 && partialSol[y] == 1) ==> JobComparator(jobs[j + x], jobs[j + y]) 
+}
+
+lemma Add2NotOverlappingSeq(seq1: seq<int>, seq2 : seq<int>, jobs: seq<Job>, i : int, j : int)
+// seq1 == allSol[j] = lungime j + 1 , allSol[0]  = [1], allSol[1] = [1,1];
+// seq2 == subSol, unde |subSol|  == i - j + 1
+requires validJobsSeq(jobs)
+requires 0 <= j < i < |jobs|
+requires i - j == |seq2| //prima valoare este pe pozitia j + 1 
+requires |seq1| == j + 1 //ultima valoare este pe pozitia j 
+requires |seq1| + |seq2| == i + 1
+requires |seq1| + |seq2| <= |jobs|
+requires hasNoOverlappingJobs(seq1, jobs)
+requires hasNoOverlappingJobs2(seq2, jobs, i, j + 1)
+requires jobs[|seq1| - 1].jobEnd <= jobs[i].jobStart //asta stim din if 
+requires seq1[|seq1|-1] == 1 && seq2[0] == 1 ==> jobs[|seq1| - 1].jobEnd <= jobs[|seq1|].jobStart 
+//asta trebuie sa se intample ca sa poate fi adevarat ca secventa ce se obtine din concatenare este !overlapp
+//seq2 trebuie sa fie formata din job-uri ordonate dupa timpul de sf 
+//dc ultimul job din prima secventa si cu primul din a2-a secventa nu se suprapun + ambele sunt secv care nu se suprapun ==> seq1 + seq2 nu se suprapun
+requires areOrderedByEnd2(seq2, jobs, i, j + 1)
+requires areOrderedByEnd(seq1, jobs)
+//requires forall k :: 0 <= k < |seq2| - 1 ==> seq2[k] == 0 //seq2 este de forma 0...01
+//daca ultimul job din seq1 se termina inainte ca ultimul job din seq2 sa inceapa 
+//iar seq2 este format dintr-o secventa de job-uri ordonate dupa timpul de sf + care nu se suprapun 
+ensures hasNoOverlappingJobs(seq1 + seq2, jobs)
+
+{
+    var partialSol :seq<int> := seq1;
+    //prima oara are lungimea lui seq1
+    var index := 0;
+    var length : int := |seq1|;
+    //var k := |seq2|;
+    while index < |seq2| //0 <= index <= 2
+        invariant 0 <= index <= |seq2|
+        invariant 0 < i < |jobs|
+        decreases |seq2| - index
+        invariant index <= |seq2|
+        invariant |seq1| <= length <= |seq1| + |seq2|
+        decreases |jobs| - length
+        // invariant |seq2| == i - j
+        invariant |seq1| + index <= |jobs|
+        invariant |seq1| + |seq2| <= |jobs|
+        decreases |jobs| - index
+        invariant hasNoOverlappingJobs2(seq2, jobs, i, j + 1)
+        invariant hasNoOverlappingJobs(partialSol, jobs)
+        invariant |partialSol| <= |jobs|
+        //invariant index < |seq2| - 1 ==> seq2[index] == 0
+        invariant forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j]);
+        //jobs[j].jobEnd <= jobs[j + index].jobEnd
+        //invariant 0 <= index <= k  ==> seq1[j] == 1 && seq2[index] == 0 ==> !overlappingJobs(j, j+index)
+        {
+            assert hasNoOverlappingJobs(partialSol, jobs);
+            assert  forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j]);
+            partialSol := partialSol + [seq2[index]];
+            length := length + 1;
+            //assert  forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j]);
+            assert |partialSol| <= |jobs|;
+            assert hasNoOverlappingJobs(partialSol, jobs);
+            index := index + 1;
+        }
+
+}
+    
+     
+//requires sortedByActEnd()
+//demonstrez ca seq1 contine job-uri ordonate dupa job end 
+//seq2 contine job-uri ordonate dupa job end 
+//ultimul job din seq1 nu se suprapune cu primul job din seq2  
+
 // intrebarea 2 : cum demonstrez ca subSol econtine job-uri care nu se suprapun ?
+//functia maxprofit intoarce solutia partiala ce contine job-ul i 
 method MaxProfit(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>) returns (maxProfit:int, solution: seq<int>)
 requires |jobs| >= 2
 requires validJobsSeq(jobs)
@@ -178,33 +275,52 @@ ensures isPartialSolution(solution, jobs, i + 1)
             invariant length == i - j 
             //invariant 1 <= |allSol| <= i
             //invariant |allSol| == i
-            invariant  isPartialSolution(subSol, jobs, length)
+            //invariant  isPartialSolution(subSol, jobs, length)
+            invariant i - j == |subSol|;
+            invariant hasNoOverlappingJobs2(subSol, jobs, i, j + 1);
+            invariant areOrderedByEnd2(subSol, jobs, i, j + 1);
             invariant j < |allSol|
             invariant j >= 0 ==> |allSol[j]| == j + 1
             invariant j >= 0 ==> isPartialSolution(allSol[j], jobs, j + 1)
+            invariant |subSol| == length;
+            invariant forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1;
 
         {   
             //job-ul j poate sa se termine la ora la care job-ul i incepe 
             if (jobs[j].jobEnd <= jobs[i].jobStart && j < |dp| && j < |allSol|) {
+                //am gasit o solutie partiala optima care nu se suprapune cu solutia noastra partiala 
+                //este suficient sa gasim un job.actEnd < job.current fiind ordonate in functie de timpul de sfarsit 
+                //allSol[j] poate sa contina job-ul j sau nu (deoarece se poate obtine sau nu o solutie partiala optima cu el)
+                //dar pe noi ne intereseaza sa nu se suprapuna, mai exact sa se termine inainte ca job-ul nostru i sa inceapa 
                 max_profit := max_profit + dp[j];
                 assert |subSol| == length;
                 ghost var length' := length;
-                assert  hasNoOverlappingJobs(subSol, jobs);
-                assert isPartialSolution(subSol, jobs, length');
+                assert  hasNoOverlappingJobs2(subSol, jobs, i, j+1); //verificam de la pozitia j+1 pana la i, asa se formeaza subSol 
+                //assert isPartialSolution(subSol, jobs, length');
                 assert !overlappingJobs(jobs[j], jobs[i]);
-                assert hasNoOverlappingJobs(allSol[j], jobs);
+                assert hasNoOverlappingJobs(allSol[j], jobs); //allSol[j] contine job-uri care nu se suprapun 
                 assert forall k, m :: 0 <= k < m < |allSol[j]| ==> (allSol[j][k] == 1 && allSol[j][m] == 1 ) ==>!overlappingJobs(jobs[k], jobs[m]);
                 length := length + |allSol[j]|; //|allSol[j]| are lungimea j + 1, se stie din ipoteza (length + j + 1 nu este > i + 1)
                 assert jobs[j].jobEnd <= jobs[i].jobStart;
-                assert hasNoOverlappingJobs(subSol, jobs);
+                //assert notOverlappingJobs(jobs, j, j + 1);
+                assert !overlappingJobs(jobs[j], jobs[j+1]);
+                Add2NotOverlappingSeq(allSol[j], subSol, jobs, i, j);
                 subSol := allSol[j] + subSol;//trebuie sa ne asiguram ca allSol este format din solutii partiale (did it))
+                //allSol[j] este solutia partiala optima cu job-urile pana la pozitia j inclusiv 
                 //assert hasNoOverlappingJobs(subSol, jobs);
                 assert |subSol| == length;
                 assert forall i :: 0 <= i <= length' - 1  ==> 0 <= subSol[i] <= 1;
                 assert isPartialSolution(allSol[j], jobs, j + 1);
                 assert forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1;
                 assert ValidPartialSolutions(allSol, jobs, i);
-                break;
+                //assert forall i :: 1 <= i < |subSol| ==> subSol[i] == 1 ==> jobs[j].jobEnd <= jobs[subSol[i]; 
+                //assert jobs[j].jobEnd <= subSol[0];
+                assert hasNoOverlappingJobs(subSol, jobs); //verificam de la pozitia 0 pana la pozitia |subSol| - 1
+                //nu se poate demonstra din cauza ca facem o concatenare intre allSol[j] si subSol 
+                //assert notOverlappingJobs(jobs, |allSol[j]|-1 , |allSol[j]|);
+                //break;
+                j := 0;
+                //assume isPartialSolution(subSol, jobs, |subSol|);
             }
             else
             {   
@@ -212,11 +328,15 @@ ensures isPartialSolution(solution, jobs, i + 1)
                 length := length + 1;
                 subSol := [0] + subSol; //as adauga i zerouri de ex pt i = 1 adaug 1, pt i = 2 adaug 2 (pozitiile 1, 0 verific)  
                 assert forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1;
-                assert hasNoOverlappingJobs(subSol, jobs);
+                assert hasNoOverlappingJobs2(subSol, jobs, i, j);
+                //assert hasJust0(subSol, jobs);
+                //assert areOrdered(subSol, jobs, i, j)
+                //assert forall i :: 1 <= i < |subSol| ==> subSol[i] == 1 ==> jobs[j].jobEnd <= subSol[i];
+                //assert hasNoOverlappingJobs(subSol, jobs);
                 //assert isPartialSolution(reverseSeq(subSol), jobs, length); //este adevarat pt ca in acest punct avem doar o valoare si adaugam zerouri
                 //doar ca job-urile verificate nu sunt cele din secventa subSol  ex daca am 1,0 este job-ul i, i-1, iar cand intoarcem verificam pt job-ul 0 si job-ul 1
                 //practic verificam primele |subSol| job-uri in loc de ultimele |subSol| job-uri  
-                assert isPartialSolution(subSol, jobs, length);
+                //assert isPartialSolution(subSol, jobs, length);
                 //solutia partiala se formeaza de la sfarsit spre inceputul listei cu job-uri
                 //deci nu pot demonstra !overlappSeq deoarece pe prima pozitie va fi job-ul de index i, apoi i-1.. , unde i va avea pe rand valorile 1,2,3 s.a.m.d
                 //iar in predicatul isPartialSolution am nevoie de o solutiePartiala ordonata/reprezentativa secventei de job-uri 
@@ -228,13 +348,14 @@ ensures isPartialSolution(solution, jobs, i + 1)
         } 
 
         maxProfit := max_profit;
+        //subSol este solutia partiala ce contine job-ul i 
         solution := subSol;
-        // assert |solution| == length;
-        // assert forall i :: 0 <= i <= length - 1 ==> 0 <= solution[i] <= 1;
-        // assert hasNoOverlappingJobs(solution, jobs);
+        assert |solution| == length;
+        assert forall i :: 0 <= i <= length - 1 ==> 0 <= solution[i] <= 1;
+        assert hasNoOverlappingJobs(solution, jobs);
         assert isPartialSolution(solution, jobs, length);
         // print("Sulutiile ", solution);
-        //abia la sf pot demonstra ca solution este solutie partiala deoarece solutia este ordonata conform cu secventa de job-uri
+        ///abia la sf pot demonstra ca solution este solutie partiala deoarece solutia este ordonata conform cu secventa de job-uri
 
         
 }
@@ -299,7 +420,9 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>)
         }
         print("Sol: ", solution);
         print("DP: ", dp);
-        allSol := allSol + [solution]; //cream secventa de solutii(care includ job-ul curent) pentru fiecare job in parte 
+        allSol := allSol + [solution]; //cream secventa de solutii(care includ job-ul curent sau nu) pentru fiecare job in parte 
+        //allSol[j] = contine solutia partiala optima pana la pozitia j inclusiv (formata din job-urile pana la pozitia j inclusiv, partiala optima)
+        print("Allsol: ", allSol);
         //assert isPartialSolution(allSol[i-1], jobs, i);
         //assert ValidPartialSolutions(allSol, jobs, i+1);
         i := i + 1;
@@ -312,11 +435,17 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>)
 
 method Main()
 {   
-    var job1: Job := Pair(jobStart := 1, jobEnd := 2, profit := 50);
-    var job2: Job := Pair(jobStart := 3, jobEnd := 5, profit := 20);
-    var job3: Job := Pair(jobStart := 6, jobEnd := 19, profit := 100);
-    var job4: Job := Pair(jobStart := 2, jobEnd := 100, profit := 200);
-    var jobs: seq<Job> := [job1, job2, job3, job4];
+    // var job1: Job := Pair(jobStart := 1, jobEnd := 2, profit := 50);
+    // var job2: Job := Pair(jobStart := 3, jobEnd := 5, profit := 20);
+    // var job3: Job := Pair(jobStart := 6, jobEnd := 19, profit := 100);
+    // var job4: Job := Pair(jobStart := 2, jobEnd := 100, profit := 200);
+    // var jobs: seq<Job> := [job1, job2, job3, job4];
+    var job1: Job := Pair(jobStart := 0, jobEnd := 10, profit := 1);
+    var job2: Job := Pair(jobStart := 15, jobEnd := 25, profit := 1);
+    var job3: Job := Pair(jobStart := 30, jobEnd := 40, profit := 1);
+    var job4: Job := Pair(jobStart := 20, jobEnd := 50, profit := 1);
+    var job5: Job := Pair(jobStart := 60, jobEnd := 70, profit := 1);
+    var jobs: seq<Job> := [job1, job2, job3, job4, job5];
     // print(jobs[..1]);
     // print(|jobs[..1]|);
     var s : seq<seq<int>> := [[1, 2, 2]];
