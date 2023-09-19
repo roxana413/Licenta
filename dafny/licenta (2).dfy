@@ -170,7 +170,7 @@ requires hasNoOverlappingJobs(seq1, jobs)
 requires hasNoOverlappingJobs2(seq2, jobs, i, j + 1)
 requires jobs[|seq1| - 1].jobEnd <= jobs[i].jobStart //asta stim din if 
 requires !overlappingJobs(jobs[j], jobs[i])
-requires forall k :: 0 <= k < |seq1| ==> !overlappingJobs(jobs[k], jobs[i]);
+requires forall k :: 0 <= k < |seq1| ==> !overlappingJobs(jobs[k], jobs[i])
 requires areOrderedByEnd2(seq2, jobs, i, j + 1)
 requires areOrderedByEnd(seq1, jobs)
 requires forall k :: 0 <= k < |seq2| - 1 ==> seq2[k] == 0 //seq2 este de forma 0...0
@@ -203,44 +203,114 @@ ensures hasNoOverlappingJobs(seq1 + [0], jobs)
 }
 
 //Inca nedemonstrata, cum as putea face asta ? (*Intrebarea 2)
-lemma Add0ToSolHasSameProfit(partialSol : seq<int>, jobs: seq<Job>, profit:int, length: int)
-requires validJobsSeq(jobs)
-requires |jobs| >= 1
-requires length <= |jobs|
-requires |partialSol| == length
-requires profit == PartialSolutionProfit(partialSol, jobs, 0, 0, length)
-ensures length < |jobs| ==> profit == PartialSolutionProfit(partialSol + [0], jobs, 0, 0, length + 1)
-{
-    if (length + 1 <= |jobs|){ 
-        var seq1' := partialSol + [0]; 
-        var length' := length + 1;
-        var profit' := PartialSolutionProfit(seq1', jobs, 0, 0, length');
-        assume profit == profit';}
-    else
-    {
+// lemma Add0ToSolHasSameProfit(partialSol : seq<int>, jobs: seq<Job>, profit:int, length: int)
+// requires validJobsSeq(jobs)
+// requires |jobs| >= 1
+// requires length <= |jobs|
+// requires |partialSol| == length
+// requires profit == PartialSolutionProfit(partialSol, jobs, 0, 0, length)
+// ensures length < |jobs| ==> profit == PartialSolutionProfit(partialSol + [0], jobs, 0, 0, length + 1)
+// {
+//     if (length + 1 <= |jobs|){ 
+//         var seq1' := partialSol + [0]; 
+//         var length' := length + 1;
+//         assert length' == |seq1'|;
+//         var profit' := PartialSolutionProfit(seq1', jobs, 0, 0, length');
+//         assert profit == profit';
+//         //assume profit == profit';
+//         }
+//     else
+//     {
 
-    }
-}
+//     }
+// }
+// lemma Aux(partialSol: seq<int>, length: int)
+// requires length == |partialSol|
+// ensures |partialSol[..(length - 1)]| == length - 1
+// {
+
+// }
+
 
 lemma Add0ToSolHasSameProfit2(partialSol : seq<int>, jobs: seq<Job>, profit:int, firstPosition:int, length: int)
+// decreases firstPosition
+decreases length
 requires validJobsSeq(jobs)
 requires |jobs| >= 1
 requires 1 <= firstPosition < |jobs|
-requires length <= |jobs|
+requires 0 <= length < |jobs|
 requires |partialSol| == length
-requires profit == PartialSolutionProfit(partialSol, jobs, 0, firstPosition, length)
-ensures length < |jobs| ==> profit == PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1)
-{
-    if (length + 1 <= |jobs|){ 
-        var seq1' := [0] + partialSol; 
-        var length' := length + 1;
-        var firstPosition' := firstPosition - 1;
-        var profit' := PartialSolutionProfit(seq1', jobs, 0, firstPosition', length');
-        assume profit == profit';}
-    else
-    {
-
+//requires length == 0 ==> profit == PartialSolutionProfit(partialSol, jobs, 0, firstPosition, length)
+requires length >= 0 ==> profit == PartialSolutionProfit(partialSol, jobs, 0, firstPosition, length)
+ensures length >= 0 && firstPosition >= 1==> profit == PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1)
+//ensures length == 1 && firstPosition >= 1 ==> profit == PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1, length + 1)
+//ensures  length >= 1 && firstPosition >= 1 ==> profit == PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1)
+//ensures length == 1 && firstPosition == 0 ==> profit == PartialSolutionProfit([0] + partialSol, jobs, 0, 0, length + 1)
+{   
+    //if (length + 1 <= |jobs|)
+    if (length == 0 && firstPosition >= 1)
+    {   
+        //assert 
+        assert |partialSol| == length;
+        assert length == 0;
+        var profit' := PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1);
+        assert profit == profit';
+    }   
+     else  if (length >= 1 && firstPosition >= 1)
+    { 
+            // var profit' := PartialSolutionProfit([0] + partialSol, jobs, 0, 0,  length + 1);
+            // assert profit == profit';
+                var lengthh := length - 1;
+                assert lengthh == |partialSol[..(length-1)]|;
+                var profitt := PartialSolutionProfit(partialSol[..(length - 1)], jobs, 0, firstPosition, lengthh);
+                var profit' := PartialSolutionProfit([0] + partialSol[..(length - 1)], jobs, 0, firstPosition - 1, lengthh + 1);
+                Add0ToSolHasSameProfit2(partialSol[..(length - 1)], jobs, profitt, firstPosition, lengthh);
+                assert  profitt == profit';
+                assert [0] + partialSol[..(length - 1)] + [partialSol[length-1]] == [0] + partialSol;
+                var profit'' := PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1 ,  length + 1);
+                Add0ToSolHasSameProfit2(partialSol[..(length - 1)], jobs, profitt, firstPosition, lengthh);
+                assert [0] + partialSol[..(length - 1)] + [partialSol[length-1]] == [0] + partialSol;
+                assert |[0] + partialSol[..(length - 1)] + [partialSol[length - 1]]| == length + 1;
+                //var profit'' := PartialSolutionProfit([0] + partialSol[..(length - 1)] + [partialSol[length - 1]], jobs, 0, firstPosition - 1 ,  length + 1);
+                assert profit == profit'';
     }
+    // else if (length > 1 && firstPosition >= 1)
+    // {
+    //             // var profit' := PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1);
+    //             // assert profit == profit';
+    //             var lengthh := length - 1;
+    //             assert lengthh == |partialSol[..(length-1)]|;
+    //             var profitt := PartialSolutionProfit(partialSol[..(length - 1)], jobs, 0, firstPosition, lengthh);
+    //             var profit' := PartialSolutionProfit([0] + partialSol[..(length - 1)], jobs, 0, firstPosition - 1, lengthh + 1);
+    //             Add0ToSolHasSameProfit2(partialSol[..(length - 1)], jobs, profitt, firstPosition, lengthh);
+    //             assert  profitt == profit';
+    //             assert [0] + partialSol[..(length - 1)] + [partialSol[length-1]] == [0] + partialSol;
+    //             var profit'' := PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1);
+    //             assert profit == profit'';
+    // }
+            
+            //var partialSol' := partialSol[..(length - 1)];
+            //var profit' := PartialSolutionProfit(partialSol', jobs, 0, firstPosition, length - 1);
+            // var partialSol' := partialSol[1..];
+            // var profit' := PartialSolutionProfit(partialSol', jobs, 0, 1, length - 1);
+            // Add0ToSolHasSameProfit2(partialSol', jobs, profit',  1, length - 1);
+            // assert profit == PartialSolutionProfit([0] + partialSol, jobs, 0, firstPosition - 1,  length + 1);
+            
+            //Add0ToSolHasSameProfit2(partialSol, jobs, profit,  firstPosition, length);
+            // var seq1' := [0] + partialSol; 
+            // var length'' := length + 1;
+            // var firstPosition' := firstPosition - 1;
+            // var profit'' := PartialSolutionProfit(seq1', jobs, 0, firstPosition', length'');
+            // assert profit'' == profit;
+
+            //Add0ToSolHasSameProfit2(seq1', jobs, profit,  firstPosition', length');
+            // var lengthh := length - 1;
+            // assert lengthh == |partialSol[..(length-1)]|;
+            // var profitt := PartialSolutionProfit(partialSol[..(length - 1)], jobs, 0, firstPosition, lengthh);
+            // var profit' := PartialSolutionProfit([0] + partialSol[..(length - 1)], jobs, 0, firstPosition - 1, lengthh + 1);
+            // Add0ToSolHasSameProfit2(partialSol[..(length - 1)], jobs, profitt, firstPosition, lengthh);
+            // assert  profitt == profit';
+
 }
 
 predicate isPartialSolution(partialSol: seq<int>, jobs: seq<Job>, index: int)
@@ -317,10 +387,10 @@ requires 1 <= |dp| < |jobs|
 requires 1 <= |allSol| <= |jobs|
 requires |allSol| == i 
 requires OptimalPartialSolutions(allSol, jobs, dp, i)
-requires ValidPartialSolutions(allSol, jobs, i) //cerem ca all sol sa contina doar secvente de 0 si 1 si pentru toate 0 <= j < i allSol[j] == j + 1
+//requires ValidPartialSolutions(allSol, jobs, i) //cerem ca all sol sa contina doar secvente de 0 si 1 si pentru toate 0 <= j < i allSol[j] == j + 1
 ensures isPartialSolution(partialSolution, jobs, i + 1)
 //aici nu obtinem solutia partiala optima de lungime i+1
-ensures maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
+//ensures maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
 //ensures  maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
 {       
        
@@ -344,7 +414,7 @@ ensures maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
             invariant |subSol| == length
             invariant forall i :: 0 <= i <= length - 1 ==> 0 <= subSol[i] <= 1
             invariant j != -1 ==> forall k :: 0 <= k < |subSol| - 1 ==> subSol[k] == 0
-            invariant max_profit == PartialSolutionProfit(subSol, jobs, 0, j + 1, length) 
+            //invariant max_profit == PartialSolutionProfit(subSol, jobs, 0, j + 1, length) 
             //invariant j == -1 ==> max_profit == PartialSolutionProfit(subSol, jobs, 0, length) 
 
         {   
@@ -367,7 +437,7 @@ ensures maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
                 assert hasNoOverlappingJobs(subSol, jobs);
                 j := 0;
                 //assert max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
-                assert max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
+                //assume max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
                 //assume max_profit == PartialSolutionProfit(subSol, jobs, 0, length);
                 //assume isPartialSolution(subSol, jobs, |subSol|);
             }
@@ -383,7 +453,7 @@ ensures maxProfit == PartialSolutionProfit(partialSolution, jobs, 0, 0, i + 1)
                 assert hasNoOverlappingJobs2(subSol, jobs, i, j);
                 max_profit := max_profit + 0 ;
                 //assert max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
-                assume max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
+                assert max_profit == PartialSolutionProfit(subSol, jobs, 0, j, length);
             }
             j := j - 1;
             //assume max_profit == PartialSolutionProfit(subSol, jobs, 0, length);
@@ -422,7 +492,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
     var i: int := 1;
     var allSol : seq<seq<int>> := [];
     allSol := allSol + [[1]]; //adaugam solutia pana la primul job inclusiv 
-    assume isOptimalPartialSolution(solution, jobs, i);
+    //assume isOptimalPartialSolution(solution, jobs, i);
     while i < |jobs| 
         invariant 1 <= i <= |jobs|
         decreases |jobs| - i
@@ -437,9 +507,9 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         decreases |jobs| - |allSol[i-1]| 
         invariant isPartialSolution(allSol[i-1], jobs, i)
         invariant ValidPartialSolutions(allSol, jobs, i) //i = 1, allSol are lungime 1 , deci doar AllSol[0] exista 
-        invariant dp[i-1] == PartialSolutionProfit(solution, jobs, 0, 0, i)
+        //invariant dp[i-1] == PartialSolutionProfit(solution, jobs, 0, 0, i)
         //invariant dp[i-1] == PartialSolutionProfit(allSol[i-1], jobs, 0, i)
-        invariant OptimalPartialSolutions(allSol, jobs, dp, i)
+        //invariant OptimalPartialSolutions(allSol, jobs, dp, i)
         //invariant isOptimalPartialSolution(solution, jobs, i)
     {  
         //castigul pt sol partiala este dp
@@ -452,7 +522,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         {   
             //assert dp[i-1] == PartialSolutionProfit(allSol[i-1], jobs, 0, i);
             dp := dp + [dp[i-1]]; //profitul general ramane profitul anterior deoarece prin prin selectarea job-ului curent nu se obtine un profit mai mare  
-            Add0ToSolHasSameProfit(solution, jobs, dp[i-1], i);
+            //Add0ToSolHasSameProfit(solution, jobs, dp[i-1], i);
             solution := solution + [0]; //solutia nu contine job-ul i 
             assert isPartialSolution(solution, jobs, i + 1);
             assert dp[i] == PartialSolutionProfit(solution, jobs, 0, 0, i + 1); //==>adaug 0 profitul ramane acelasi 
@@ -487,31 +557,38 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
 
 method Main()
 {   
-    // var job1: Job := Pair(jobStart := 1, jobEnd := 2, profit := 50);
-    // var job2: Job := Pair(jobStart := 3, jobEnd := 5, profit := 20);
-    // var job3: Job := Pair(jobStart := 6, jobEnd := 19, profit := 100);
-    // var job4: Job := Pair(jobStart := 2, jobEnd := 100, profit := 200);
-    // var jobs: seq<Job> := [job1, job2, job3, job4];
-    var job1: Job := Pair(jobStart := 0, jobEnd := 10, profit := 1);
-    var job2: Job := Pair(jobStart := 15, jobEnd := 25, profit := 1);
-    var job3: Job := Pair(jobStart := 30, jobEnd := 40, profit := 1);
-    var job4: Job := Pair(jobStart := 20, jobEnd := 50, profit := 1);
-    var job5: Job := Pair(jobStart := 60, jobEnd := 70, profit := 1);
-    var jobs: seq<Job> := [job1, job2, job3, job4, job5];
+    var job1: Job := Pair(jobStart := 1, jobEnd := 2, profit := 50);
+    var job2: Job := Pair(jobStart := 3, jobEnd := 5, profit := 20);
+    var job3: Job := Pair(jobStart := 6, jobEnd := 19, profit := 100);
+    var job4: Job := Pair(jobStart := 2, jobEnd := 100, profit := 200);
+    var jobs: seq<Job> := [job1, job2, job3, job4];
+    // var job1: Job := Pair(jobStart := 0, jobEnd := 10, profit := 1);
+    // var job2: Job := Pair(jobStart := 15, jobEnd := 25, profit := 1);
+    // var job3: Job := Pair(jobStart := 30, jobEnd := 40, profit := 1);
+    // var job4: Job := Pair(jobStart := 20, jobEnd := 50, profit := 1);
+    // var job5: Job := Pair(jobStart := 60, jobEnd := 70, profit := 1);
+    // var jobs: seq<Job> := [job1, job2, job3, job4, job5];
     // print(jobs[..1]);
     // print(|jobs[..1]|);
     var s : seq<seq<int>> := [[1, 2, 2]];
-    s := s + [[2]];
-    // print(s);
-    print(|s|);
-    var secventa : seq<int> := [1,1,1];
-    // print(s[0]);
-    //secventa de job-uri trebuie sa fie valida (1)
-    //-----------------------------------contina job-uri diferite din pctdv al cel putin un timp (st sau sf)  
-    var solutie : seq<int> := [];
-    var profit : int := 0;
-    solutie, profit := WeightedJobScheduling(jobs);
-    print ("Solutia: ", solutie);
-    //solutia trebuie sa contina job-uri care nu se suprapun si sa fie de profit maxim 
+    var partial : seq<int> := [0,0,1];
+    var partial' : seq<int> := [0,0,0,1];
+    var profit : int :=  PartialSolutionProfit(partial, jobs, 0, 1, 3);
+    var profit' : int :=  PartialSolutionProfit(partial', jobs, 0, 0, 4);
+    print(profit);
+    print(profit');
+    assert profit == profit';
+    // //s := s + [[2]];
+    // // print(s);
+    // print(|s|);
+    // var secventa : seq<int> := [1,1,1];
+    // // print(s[0]);
+    // //secventa de job-uri trebuie sa fie valida (1)
+    // //-----------------------------------contina job-uri diferite din pctdv al cel putin un timp (st sau sf)  
+    // var solutie : seq<int> := [];
+    // //var profit : int := 0;
+    // solutie, profit := WeightedJobScheduling(jobs);
+    // print ("Solutia: ", solutie);
+    // //solutia trebuie sa contina job-uri care nu se suprapun si sa fie de profit maxim 
     
 }
