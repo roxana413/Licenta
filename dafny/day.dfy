@@ -207,19 +207,29 @@ requires 0 <= length <= |jobs|
     forall otherSol :: isPartialSolution(otherSol, jobs, length) ==> HasLessProfit(otherSol, jobs, PartialSolutionPrefixProfit(partialSol, jobs, 0))
 }
 
-predicate isOptimalPartialSolutionDP(solution: seq<int>, jobs: seq<Job>, length : int, dp:int)
+predicate HasProfit(partialSol: seq<int>, jobs: seq <Job>, profit: int )
 requires validJobsSeq(jobs) 
 requires |jobs| >= 1
-requires 0 <= length <= |jobs|
-{ 
-    isPartialSolution(solution, jobs, length) && PartialSolutionPrefixProfit(solution, jobs, 0) ==  dp
+requires |partialSol| <= |jobs|
+{
+    PartialSolutionPrefixProfit(partialSol, jobs, 0) ==  profit
 }
 
-predicate OptimalPartialSolutions(allSol: seq<seq<int>>, jobs: seq<Job>, dp:seq<int>, index: int)
+ghost predicate isOptimalPartialSolutionDP(partialSol: seq<int>, jobs: seq<Job>, length : int, dp:int)
+requires validJobsSeq(jobs) 
+requires 1 <= |jobs| 
+requires 0 <= length <= |jobs|
+{ 
+    |partialSol| == length && isOptimalPartialSolution(partialSol, jobs, length) && HasProfit(partialSol, jobs, dp)
+}
+
+ghost predicate OptimalPartialSolutions(allSol: seq<seq<int>>, jobs: seq<Job>, dp:seq<int>, index: int)
 requires validJobsSeq(jobs)
+requires |allSol| == index
 requires index <= |jobs|
+requires |dp| == index 
 {
-    |allSol| == index && |dp| == index && forall i : int :: 0 <= i < index ==> isOptimalPartialSolutionDP(allSol[i], jobs, i + 1, dp[i]) 
+     forall i : int :: 0 <= i < index ==> |allSol[i]| == i + 1  && isOptimalPartialSolutionDP(allSol[i], jobs, i + 1, dp[i])
 }
 
 predicate isSolution(solution: seq<int>, jobs: seq <Job>) //sa primeasca si datele de intrare (problema) , solutie pt porblema, not overlap
@@ -281,14 +291,13 @@ requires 1 <= i < |jobs|
 requires 1 <= |dp| < |jobs|
 requires 1 <= |allSol| <= |jobs|
 requires |allSol| == i 
+requires |dp| == i
 requires OptimalPartialSolutions(allSol, jobs, dp, i)
 requires ValidPartialSolutions(allSol, jobs, i) //cerem ca all sol sa contina doar secvente de 0 si 1 si pentru toate 0 <= j < i allSol[j] == j + 1
 ensures isPartialSolution(partialSolution, jobs, i + 1)
 ensures maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0)
 ensures partialSolutionWithJobI(partialSolution, jobs, i)
 ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, maxProfit) 
-//solutie partiala optima CU job-ul i inclus  
-//ensures maxProfit > dp[i-1] ==> isOptimalPartialSolution(partialSolution, jobs, i + 1)
 {       
        
         var max_profit := 0;
@@ -316,16 +325,21 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
 
         if j >= 0
         {  
+            //assume false;
             assert !overlappingJobs(jobs[j], jobs[i]);
-            assert hasNoOverlappingJobs(allSol[j], jobs);  
+            assert hasNoOverlappingJobs(allSol[j], jobs); 
+            assert HasProfit(allSol[j], jobs, dp[j]);
+            assert isOptimalPartialSolution(allSol[j], jobs, |allSol[j]|); 
+            //assert forall partialSol :: |partialSol| == j && isPartialSolution (partialSol, jobs, j) ==> HasLessProfit(partialSol, jobs, PartialSolutionPrefixProfit(allSol[j], jobs, 0));
             assert |allSol[j]| == j + 1;
             partialSolutionPrefix := allSol[j];
             assert dp[j] == PartialSolutionPrefixProfit(allSol[j], jobs, 0);
             length := length + |allSol[j]|; 
+            assert length == |allSol[j]|;
             assert forall i :: 0 <= i <= length - 1 ==> 0 <= partialSolutionPrefix[i] <= 1;
             assert hasNoOverlappingJobs(partialSolutionPrefix, jobs);
             max_profit := max_profit + dp[j]; //adaug profitul pt solutia partiala optima (cu job-uri pana la pozitia j)
-            var nr_of_zeros := i - j - 1; // nr de elemente dintre i si j 
+            var nr_of_zeros := i - |allSol[j]|; // nr de elemente dintre i si j 
             assert |allSol[j]| == j + 1;
             assert length + nr_of_zeros < |jobs|;
             assert nr_of_zeros + |allSol[j]| == i ;  
@@ -338,10 +352,10 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                 invariant length + nr_of_zeros <= i;
                 invariant length < |jobs|;
                 invariant length == i - nr_of_zeros
+                invariant nr_of_zeros == 0 ==> length == i 
                 invariant hasNoOverlappingJobs(partialSolutionPrefix, jobs)
                 invariant forall k :: j < k < |partialSolutionPrefix| ==> partialSolutionPrefix[k] == 0
                 invariant max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0)
-                //invarianti 
                     {   
                         AssociativityOfProfitFunc(partialSolutionPrefix, jobs, 0, 0);
                         assert max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0);
@@ -353,12 +367,16 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                         //assert PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0) == PartialSolutionPrefixProfit(partialSolutionPrefix + [0], jobs, 0);
                         assert max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0); 
                     }
-            
-            assume length == i; //de demonstrat 
+            //assert nr_of_zeros == 0;
+            //assert length == i; //de demonstrat 
+            max_profit := max_profit + jobs[i].profit;
+            assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
         } 
         else if j == -1
         {   
+            //assume false;  
             //cazul in care punem numai zerouri 
+            assert forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]);
             var nr_of_zeros := i; 
             while nr_of_zeros > 0 
                 decreases nr_of_zeros
@@ -368,6 +386,7 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                 invariant length + nr_of_zeros <= i;
                 invariant length < |jobs|;
                 invariant length == i - nr_of_zeros
+                invariant nr_of_zeros == 0 ==> length == i 
                 invariant hasNoOverlappingJobs(partialSolutionPrefix, jobs)
                 invariant max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0)
                 invariant forall k :: 0 <= k < |partialSolutionPrefix| ==> partialSolutionPrefix[k] == 0
@@ -380,6 +399,9 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                     }
             assert length == i;
             assert containsOnlyZeros(partialSolutionPrefix);
+            max_profit := max_profit + jobs[i].profit;
+            assert partialSolutionWithJobI(partialSolutionPrefix + [1], jobs, i);
+            assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
         }
         assert j == -1 ==> containsOnlyZeros(partialSolutionPrefix);
         assert length == i;
@@ -406,7 +428,7 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
         // }
         partialSolution := partialSolutionPrefix + [1]; //includem si job-ul i (solutia partiala ce contine job-ul i)
         length := length + 1;
-        max_profit := max_profit + jobs[i].profit;
+        //max_profit := max_profit + jobs[i].profit;
         assert max_profit == PartialSolutionPrefixProfit(partialSolution, jobs, 0);
         assert |partialSolution| <= |jobs|; //de demonstrat ca dupa ce adugam job-ul i obtinem o solutie p cu job-uri care nu se suprapune
         assert |partialSolution| == length;
@@ -415,6 +437,7 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
         //stim ca daca avem zerouri nu se suprapun cu i, trebuie sa demonstram ca i nu se suprapune cu allSol[j]
         assert hasNoOverlappingJobs(partialSolution, jobs);
         assert isPartialSolution(partialSolution, jobs, length);
+        assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
         maxProfit := max_profit;
         assert maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0); 
 }
@@ -462,13 +485,14 @@ ensures PartialSolutionPrefixProfit(partialSol, jobs, index) == PartialSolutionP
 
 }
 
+
 method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : int)
     requires |jobs| >= 1
     requires validJobsSeq(jobs)
     requires distinctJobsSeq(jobs)
     requires sortedByActEnd(jobs)
     ensures isSolution(sol, jobs)
-    //ensures isOptimalSolution(sol, jobs)
+    ensures isOptimalSolution(sol, jobs)
 {   
     var dp :seq<int> := [];
     var dp0 := jobs[0].profit; //dynamic programming
@@ -492,6 +516,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         invariant i == |allSol|
         decreases |jobs| - |allSol|
         invariant |allSol[i-1]| == i 
+        invariant forall k :: 0 <= k < i ==> |allSol[k]| == k + 1
         invariant 1 <= |allSol[i-1]| <= |jobs|
         decreases |jobs| - |allSol[i-1]| 
         invariant isPartialSolution(allSol[i-1], jobs, i)
@@ -499,10 +524,12 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         invariant dp[i-1] == PartialSolutionPrefixProfit(solution, jobs, 0)
         invariant dp[i-1] == PartialSolutionPrefixProfit(allSol[i-1], jobs, 0)
         invariant OptimalPartialSolutions(allSol, jobs, dp, i)
+        invariant isOptimalPartialSolution(allSol[i - 1], jobs, i)
         invariant partialSolutionWithoutJobI(solution, jobs, i - 1) ==> PartialSolutionPrefixProfit(solution, jobs, 0) == PartialSolutionPrefixProfit(solution[..|solution|- 1], jobs, 0)
         // invariant partialSolutionWithoutJobI(solution, jobs, i - 1) ==> HasLessProfit(solution, jobs, dp[i-1])
         // invariant partialSolutionWithJobI(solution, jobs, i - 1) ==> HasLessProfit(solution, jobs, dp[i-1])
         //invariant HasLessProfit(solution, jobs, dp[i-1]);
+        invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1]);
         invariant isOptimalPartialSolution(solution, jobs, i)
     {  
         //castigul pt sol partiala este dp
@@ -513,8 +540,10 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         
         if dp[i-1] >= maxProfit //se obtine un profit mai bun fara job-ul curent //lemma requires conditia
         {   
-            assume false;
+            //assume forall k :: 0 <= k < i ==> |allSol[k]| == k + 1;
+            //assume false;
             //assert dp[i-1] == PartialSolutionProfit(allSol[i-1], jobs, 0);
+            //daca nu adaugam un job, profitul ramane acelasi cu cel anterior care este <= dp[i-1] ==> conditia se pastreaza dp[i] = dp[i-1]
             AssociativityOfProfitFunc(solution, jobs, 0, 0);
             dp := dp + [dp[i-1]]; //profitul maxim ramane profitul anterior deoarece prin prin selectarea job-ului curent nu se obtine un profit mai mare  
             //leadsToOptimalWithoutTaking(solution, jobs, i + 1);
@@ -535,6 +564,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
         }
         else //alegem job-ul i 
         {   
+            assume forall k :: 0 <= k < i ==> |allSol[k]| == k + 1;
             //assert dp[i-1] == PartialSolutionProfit(allSol[i-1], jobs, 0, i);
             dp := dp + [maxProfit]; //profitul general creste deorece cu job-ul curent se obtine un profit mai mare 
             //leadsToOptimalWithTaking(solution, jobs, i + 1);
@@ -553,10 +583,13 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
             {
                 if partialSol[i] == 1
                 {
-                    //assume false;
+                    // assume false;
+                    //demonstrat din functia MaxProfit 
                 }
                 else{
-                    // assume false;
+                     //daca nu adaug un job profitul ramane <= dp[i-1] (invariant sulutie partiala optima), care in aceasta ramura a if-ului este <= max_profit 
+                     // ==> tranzitivitate ==> profitul curent <= dp[i] (= max_profit)
+                     assume false;
                      NotAddingAJobKeepsSameProfit(partialSol[..i], jobs, 0);
                      assert partialSol[..i] + [0] == partialSol;
                      assert PartialSolutionPrefixProfit(partialSol[..i], jobs, 0) == PartialSolutionPrefixProfit(partialSol, jobs, 0);
@@ -568,6 +601,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
                      //assume false;
 
                 }
+            
             }
             assert maxProfit == dp[i];
             // forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
