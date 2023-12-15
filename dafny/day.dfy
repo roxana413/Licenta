@@ -326,7 +326,7 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
         if j >= 0
         {  
             //metoda
-            assume false;
+            //assume false;
             assert !overlappingJobs(jobs[j], jobs[i]);
             assert hasNoOverlappingJobs(allSol[j], jobs); 
             assert HasProfit(allSol[j], jobs, dp[j]);
@@ -373,11 +373,59 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
             assert nr_of_zeros == 0;
             assert length == i; //de demonstrat 
             max_profit := max_profit + jobs[i].profit;
-            assume forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
+            assert forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]);
+            forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
+            ensures HasLessProfit(partialSol, jobs, max_profit) {
+                var k := i - 1; // pe pozitia i se afla job-ul i 
+                //assume false;
+                //assert partialSol[k] == 0;
+                assert |partialSol| == i + 1;
+                //assume false;
+                while k > j //k > 0 , ajungeam pana la 1 si invariantul era ori k' >= k (imposibil), ori k' > k => ultimele pozitii verificare erau > 1 = 2 (1)
+                    decreases k
+                    invariant j <= k < i
+                    invariant forall k' :: k < k' < i ==> partialSol[k'] == 0 //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0 
+                    invariant PartialSolutionPrefixProfit(partialSol, jobs, k + 1) == jobs[i].profit //demonstram de la 0 la i pentru toate job-urile 
+                    {
+                        //assume false;
+                        if partialSol[k] == 1 {
+                            
+                            assert partialSol[i] == 1;
+                            
+                            assert overlappingJobs(jobs[k], jobs[i]);
+                            
+                            assert !isPartialSolution(partialSol, jobs, i + 1); //demonstram ca daca ar fi 1 s-ar contrazice cu ipoteza ==> doar 0-uri 
+                            // assume false;
+                            assert false;
+                            //assume false;
+
+                        }
+                        // else{
+                        //     assume false;
+                        //     assert partialSol[k] == 0; //trivial ?? meaning , avem deja in invariant
+                        // }
+                        assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
+                        assert partialSol[k] == 0;
+                        assert forall k' :: k <= k' < i ==> partialSol[k'] == 0; //in while demonstrezi pentru k' = k
+                        k := k - 1;
+                        assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
+                        // assume false;
+                    }
+                    //assume false;
+                //dp[j] este profitul solutiei partiale optime pana la pozitia j 
+                assert dp[j] == PartialSolutionPrefixProfit(allSol[j], jobs, 0);
+                //assume false;
+                //stim ca intre j si i avem numai 0-uri => profitul pt secv dintre j si i = jobs[i].profit
+                assume PartialSolutionPrefixProfit(partialSol, jobs, j + 1) == jobs[i].profit; //lemma tot 0, profit 0 
+                //allSol[j] este solutia partiala optima cu job-uri pana la pozitia j de lungime j + 1
+                //assert PartialSolutionPrefixProfit(partialSol, jobs, 0) == dp[j] + jobs[i].profit; //lemma tot 0, profit 0 
+            }
+            assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
         } 
         else
         {   
             //metoda
+            assume false;
             assert j == -1;
             //assume false;  
             //cazul in care punem numai zerouri 
@@ -417,22 +465,9 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                 var k := i - 1; // pe pozitia i se afla job-ul i 
                 //assume false;
                 assert partialSol[k] == 0;
-                
-                //  if partialSol[k] == 1 {
-                //         //stiu ca toate job-urile din fata lui i se suprapun cu el ==> nu poate fi 1 in partialSol
-                //         //assert partialSol[i] == 1;
-                //         //assume false;
-                //         //daca e 1 nu s-ar suprapune dar noi stim ca toate se suprapun cu i 
-                //         //cazul asta nu trebuie demonstrat pentru ca nu este posibil (in solutia partiala job-urile nu se suprapun)
-                //         assert partialSol[i] == 1;
-                //     }
-                //     else{
-                //         //assume false;
-                //         assert partialSol[k] == 0;
-                //     }
                 assert |partialSol| == i + 1;
                 //assume false;
-                while k >= 0 
+                while k >= 0 //k > 0 , ajungeam pana la 1 si invariantul era ori k' >= k (imposibil), ori k' > k => ultimele pozitii verificare erau > 1 = 2 (1)
                     decreases k
                     invariant -1 <= k < i
                     invariant forall k' :: k < k' < i ==> partialSol[k'] == 0 //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0 
@@ -456,7 +491,7 @@ ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(pa
                         // }
                         assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
                         assert partialSol[k] == 0;
-                        assert forall k' :: k <= k' < i ==> partialSol[k'] == 0;
+                        assert forall k' :: k <= k' < i ==> partialSol[k'] == 0; //in while demonstrezi pentru k' = k
                         k := k - 1;
                         assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
                         // assume false;
