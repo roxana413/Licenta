@@ -155,7 +155,7 @@ ensures hasNoOverlappingJobs(seq1 + [0], jobs)
 
 }
 
-//demonstram ca functia profit este asociativa 
+//demonstram ca functia profit este asociativa prin inductie
 lemma AssociativityOfProfitFunc(partialSolPrefix : seq<int>, jobs: seq<Job>, val: int, index: int)
 requires 0 <= index <= |partialSolPrefix|
 requires validJobsSeq(jobs)
@@ -358,7 +358,7 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
     assert forall k :: j < k < i ==> partialSolutionPrefix[k] == 0;
     assert forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]); //stim ca toate job-urile strict mai mari decat j se suprapun cu i 
     //assume false;
-    /*forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
+    forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
     ensures HasLessProfit(partialSol, jobs, max_profit) {
         var k := i - 1; // pe pozitia i se afla job-ul i 
         //assume false;
@@ -371,6 +371,7 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
             {   
                 //in corpul while-ului incerc sa demonstrez invariantii 
                 //assume false;
+                //formez partialSol ' care e pana la 0-uri
                 if partialSol[k] == 1 {
 
                     assert partialSol[i] == 1;
@@ -386,7 +387,6 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
                 k := k - 1;
                 assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
                 assume false;
-                // assume false;
             }
         
         //dp[j] este profitul solutiei partiale optime pana la pozitia j 
@@ -401,7 +401,7 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
         //assert HasProfit(partialSol, jobs, 0, dp[j] + jobs[i].profit);
         //assert PartialSolutionPrefixProfit(partialSol, jobs, 0) == dp[j] + jobs[i].profit; //lemma tot 0, profit 0 
     }
-    */
+    
     assert isOptimalPartialSolution(allSol[j], jobs, j + 1);
     //assert PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0) == dp[j];
     //assert HasProfit(partialSolutionPrefix, jobs, 0, dp[j] + jobs[i].profit);
@@ -422,6 +422,58 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
     partialSolution := partialSolutionPrefix;
 }
 
+lemma OtherSolHasLessProfitThenMaxProfit(jobs : seq<Job>, i: int, j : int, max_profit : int)
+requires validJobsSeq(jobs)
+requires 0 < i < |jobs|
+requires max_profit == jobs[i].profit
+requires forall j :: 0 <= j < i ==> overlappingJobs(jobs[j], jobs[i])
+ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit)
+{
+    forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
+    ensures HasLessProfit(partialSol, jobs, max_profit) {
+        assert isPartialSolution(partialSol, jobs, i + 1);
+        var k := i - 1; // pe pozitia i se afla job-ul i 
+        assert partialSol[k] == 0;
+        assert |partialSol| == i + 1;
+        assert -1 <= k < i;
+        //assume !exists k' :: k < k' < i; 
+        assert forall k' :: k < k' < i ==> partialSol[k'] == 0; //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0 
+        assert PartialSolutionPrefixProfit(partialSol, jobs, k + 1) == jobs[i].profit;
+        //lemma
+        while k >= 0 //k > 0 , ajungeam pana la 1 si invariantul era ori k' >= k (imposibil), ori k' > k => ultimele pozitii verificare erau > 1 = 2 (1)
+            decreases k
+            invariant -1 <= k < i
+            invariant forall k' :: k < k' < i ==> partialSol[k'] == 0 //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0 
+            invariant PartialSolutionPrefixProfit(partialSol, jobs, k + 1) == jobs[i].profit //demonstram de la 0 la i pentru toate job-urile 
+            {   
+                // assume false;
+                if partialSol[k] == 1 {
+                    
+                    //assume false;
+                    assert partialSol[i] == 1;
+                    
+                    assert overlappingJobs(jobs[k], jobs[i]);
+                    
+                    assert !isPartialSolution(partialSol, jobs, i + 1); //demonstram ca daca ar fi 1 s-ar contrazice cu ipoteza ==> doar 0-uri 
+                    // assume false;
+
+                }
+                // else{
+                //     assume false;
+                //     assert partialSol[k] == 0; //trivial ?? meaning , avem deja in invariant
+                // }
+                // assume false;
+                assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
+                assert partialSol[k] == 0;
+                assert forall k' :: k <= k' < i ==> partialSol[k'] == 0; //in while demonstrezi pentru k' = k
+                k := k - 1;
+                assert forall k' :: k < k' < i ==> partialSol[k'] == 0;
+                // assume false;
+            }
+        //assume false;
+        assert PartialSolutionPrefixProfit(partialSol, jobs, 0) == jobs[i].profit; //lemma tot 0, profit 0 
+    }
+}
 
 //DEMONSTRATA doar 0-uri in fata lui i 
 method  OptimalPartialSolutionWhenOverlapJob(jobs: seq <Job>, i: int, dp: seq<int>, j : int) returns (maxProfit:int, partialSolution: seq<int>, length: int)
@@ -431,7 +483,7 @@ requires sortedByActEnd(jobs)
 requires 1 <= i < |jobs|
 requires 1 <= |dp| < |jobs|
 requires |dp| == i
-requires j == -1
+requires j == -1 //de inloc
 requires forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i])
 ensures isPartialSolution(partialSolution, jobs, i + 1)
 ensures maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0)
@@ -460,7 +512,8 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
         invariant length == i - nr_of_zeros
         invariant nr_of_zeros == 0 ==> length == i 
         invariant hasNoOverlappingJobs(partialSolutionPrefix, jobs)
-        invariant max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0)
+        // invariant max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0)
+        invariant max_profit == 0
         invariant forall k :: 0 <= k < |partialSolutionPrefix| ==> partialSolutionPrefix[k] == 0
             {   
                 AssociativityOfProfitFunc(partialSolutionPrefix, jobs, 0, 0);
@@ -482,14 +535,19 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
     assert isPartialSolution(partialSolutionPrefix, jobs, i);
     //assume false;
 
-    /*forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
+    //lema max_profit = jobs[i].profit inlocuit 
+
+    forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
     ensures HasLessProfit(partialSol, jobs, max_profit) {
         assert isPartialSolution(partialSol, jobs, i + 1);
         var k := i - 1; // pe pozitia i se afla job-ul i 
         assert partialSol[k] == 0;
         assert |partialSol| == i + 1;
-        //assume false;
-        assume false;
+        assert -1 <= k < i;
+        //assume !exists k' :: k < k' < i; 
+        assume forall k' :: k < k' < i ==> partialSol[k'] == 0; //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0 
+        assume PartialSolutionPrefixProfit(partialSol, jobs, k + 1) == jobs[i].profit;
+        //lemma
         while k >= 0 //k > 0 , ajungeam pana la 1 si invariantul era ori k' >= k (imposibil), ori k' > k => ultimele pozitii verificare erau > 1 = 2 (1)
             decreases k
             invariant -1 <= k < i
@@ -527,7 +585,7 @@ ensures partialSolutionWithJobI(partialSolution, jobs, i)
     }
     assume false;
     assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit) ;
-    */
+    
     assert |partialSolutionPrefix| == length;
     assert forall i :: 0 <= i <= length - 1 ==> 0 <= partialSolutionPrefix[i] <= 1;
     assert hasNoOverlappingJobs(partialSolutionPrefix, jobs); //deoarece avem un invariant in care stim ca toate job-urile din fata lui i sunt 0 
