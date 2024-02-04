@@ -1,11 +1,118 @@
-\chapter{Titlul primului capitol}
+\chapter{Dafny}
+\section{Prezentare generală}
 
-Diam sit amet nisl suscipit adipiscing bibendum. Aliquet lectus proin nibh nisl condimentum id. Urna duis convallis convallis tellus id interdum velit laoreet. Amet tellus cras adipiscing enim eu turpis egestas pretium aenean. Tortor condimentum lacinia quis vel eros donec ac odio tempor. Volutpat ac tincidunt vitae semper. Urna cursus eget nunc scelerisque viverra mauris in aliquam. Aliquam id diam maecenas ultricies. Molestie a iaculis at erat. Tincidunt nunc pulvinar sapien et ligula ullamcorper malesuada proin. Consequat interdum varius sit amet. Eget est lorem ipsum dolor sit amet consectetur adipiscing. Pharetra diam sit amet nisl suscipit adipiscing bibendum. Maecenas sed enim ut sem viverra aliquet eget sit. Enim blandit volutpat maecenas volutpat blandit aliquam etiam erat velit.
+Dafny este un limbaj imperativ de nivel înalt cu suport pentru programarea orientată pe obiecte. Metodele realizate în Dafny
+au precondiții, postcondiții și invarianți care sunt verificate la compilare, bazându-se pe soluționatorul SMT Z3. În cazul în care o postcondiție nu poate fi stabilită (fie din cauza unui timeout, fie din cauza faptului că aceasta nu este valabilă), compilarea eșuează. Prin urmare, putem avea un grad ridicat de încredere într-un program verificat cu ajutorul sistemului Dafny.
+Acesta a fost conceput pentru a facilita scrierea unui cod corect, în sensul de a nu avea erori de execuție, dar și corect în sensul de a face ceea ce programatorul a intenționat să facă.
 
-\section{Titlul secțiunii 1}
+\section{Tipuri de date}
+În Dafny există mai multe tipuri de date care pot fi utilizate pentru a defini variabile și structuri de date:
 
-Id donec ultrices tincidunt arcu non sodales neque. Integer eget aliquet nibh praesent. Euismod in pellentesque massa placerat duis ultricies lacus sed. Mauris ultrices eros in cursus turpis massa. Integer quis auctor elit sed vulputate mi. Nibh ipsum consequat nisl vel pretium lectus quam id leo. Vel elit scelerisque mauris pellentesque pulvinar pellentesque. Suscipit tellus mauris a diam maecenas. Ultrices eros in cursus turpis massa tincidunt. Tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse interdum consectetur libero id faucibus nisl tincidunt eget. Sed risus pretium quam vulputate dignissim suspendisse in. Donec adipiscing tristique risus nec feugiat in fermentum posuere. A lacus vestibulum sed arcu non odio euismod lacinia at.
+\begin{itemize}
+  \item \textbf {int}: folosit pentru a declara numere intregi\\ 
+  \textit{ex. var x: int := 10;}
+  \item \textbf {bool}: folosit pentru a declara valori de adevar: true si false\\
+  \textit{ex. var esteAdevarat: bool := true;}
+  \item \textbf {char}: folosit pentru a declara caractere \\
+  \textit{ex. var litera: char := 'A';}
+  \item \textbf {string} : folosit pentru a declara siruri de caractere\\
+  \textit{ex. var mesaj: string := "Am terminat codul!";}
+  \item \textbf {seq$<$T$>$}: folosit pentru a declara secvente de elemente ordonate de tip T, precum liste, cozi si stive, fiind imutabile odata ce au fost create \\
+  \textit{ex. var oSeq: seq$<$int$>$ := \{1, 2, 3\};}
+  \item \textbf {set$<$T$>$}: folosit pentru a declara seturi de elemente unice de tip T \\
+  \textit{ex. var unSet: set$<$int$>$ := \{1, 2, 3\};}
+  
+\end{itemize}
+Acestea sunt doar cateva exemple, limbajul oferă suport si pentru structuri de date mai complexe, inclusiv tipuri de date definite de utilizator. 
+  
 
-\section{Titlul secțiunii 2}
+\section {Metode , funcții si predicate}
+\subsection{Metode}
+Metodele în Dafny reprezintă blocuri de intrucțiuni ce pot avea un comportament stabilit, apelate sau pentru a calcula valori, sau pentru a realiza anumite instrucțiuni sau ambele. Fiecare metoda poate fi caracterizată de precondiții si postcondiții care trebuiesc îndeplinite. Precondițiile trebuie să fie îndeplinite la apelarea metodei pentru ca aceasta să se execute, iar postcondițiile trebuie sa fie îndeplinite după ce se termină de executat corpul metodei. O metoda a caror postcondiții nu sunt îndeplinite nu poate fi demonstrată ca fiind corectă.
+Postcondițiile reprezinta ceea ce Dafny știe în urma apelului unei metode, el uitând corpul acesteia.\\O metodă în Dafny este definită folosind cuvântul cheie \textbf{\textit{'method'}}.\\
 
-Pellentesque pulvinar pellentesque habitant morbi tristique senectus et. Ornare suspendisse sed nisi lacus sed viverra tellus in hac. Non sodales neque sodales ut etiam sit. In hendrerit gravida rutrum quisque non. Diam quam nulla porttitor massa id neque aliquam. Diam sit amet nisl suscipit adipiscing bibendum est ultricies integer. Cras fermentum odio eu feugiat pretium nibh ipsum. Egestas integer eget aliquet nibh praesent tristique magna. Porttitor eget dolor morbi non arcu risus quis varius quam. Gravida rutrum quisque non tellus orci. Diam volutpat commodo sed egestas egestas.
+\begin{verbatim}
+
+method SumaCuVerificareM(a: int, b: int) returns (rezultat: int)
+    ensures rezultat == a + b
+{
+    return a + b;
+}
+\end{verbatim}
+Cu ajutorul postconditiei \textit{ensures rezultat == a + b} assert-ul urmator va putea fi evaluat cu true. Altfel, dacă ensures-ul ar fi lipsit, rezultatul funcției, respectiv \textit{AdunaCuVerificareM(3,2)} nu poate fi știut. 
+
+\begin{verbatim}
+method Main()
+{
+  var suma := AdunaCuVerificareM(3,2);
+  assert suma == 5;
+}
+\end{verbatim}
+
+\subsection{Funcții}
+Funcțiile, în schimb contin o singura instrucțiune și au ca scop calcularea unor funcții pur matematice. Spre deosebire de metode, Dafny nu uită corpul unei funcții atunci când acestea sunt apelate din exterior: alte metode, lemme. Funcțiile nu fac niciodată parte din programul final compilat, ele sunt doar instrumente care ne ajută să ne verificăm codul. O funcție în Dafny este definită folosind cuvântul cheie \textbf{'function'}.
+\begin{verbatim}
+function AdunaCuVerificareF(a: int, b: int): int
+{
+    a + b;
+}
+\end{verbatim}
+În acest caz, daca vom apela în \textit{main()} funcția \textit{AdunaCuVerificareF(3,2)} assert-ul va avea loc cu succes. 
+
+\begin{verbatim}
+method Main()
+{
+  var suma := AdunaCuVerificareF(3,2);
+  assert suma == 5;
+}
+\end{verbatim}
+\subsection{Predicate}
+În Dafny, predicatele sunt utilizate pentru a specifica condiții sau proprietăți care trebuie să fie adevărate în anumite contexte, cum ar fi în invarianții buclelor sau postcondițiile metodelor. Predicatele sunt adesea exprimate ca expresii booleene și joacă un rol crucial în specificarea proprietăților de corectitudine. Predicatul de mai jos asigura că variabila n este număr par. Un predicat în Dafny este definit folosind cuvântul cheie \textbf{'predicate'}.
+\begin{verbatim}
+    predicate EstePar(n: int)
+    {
+        n % 2 == 0
+    }
+\end{verbatim}
+
+\section{Precondiții, poscondiții si invarianți de buclă}
+\subsection{Precondiții, poscondiții}
+
+Precondițiile și postcondițiile reprezintă proprietăți care trebuie sa fie îndeplinite la intrarea (precondiții) și respectiv, la ieșirea (postcondiții) dintr-o metodă, lemă, funcție. Astfel, adevărata putere a Dafny-ului vine din capacitatea de a adnota metodele pentru a le specifica comportamentul. O precondiție în Dafny este definită folosind cuvântul cheie \textbf{'requires'}. O postcondiție în Dafny este definită folosind cuvântul cheie \textbf{'ensures'}.
+
+\begin{verbatim}
+    method ElementNeutru(x: int, y: int) returns (suma: int)
+      requires x == 0
+      ensures suma == y
+    {
+      returns x + y;
+    }
+\end{verbatim}
+În metoda de mai sus, pentru ca suma sa fie egala cu valoarea lui y trebuie ca x sa respecte precondiția \textit{requires x == 0}. 
+
+\subsection{Invarianti de buclă}
+Un invariant de buclă este o expresie care se menține chiar înainte de testul buclei, adică la intrarea într-o buclă și după fiecare execuție a corpului buclei. Aceasta surprinde ceva care este invariabil, adică nu se schimbă, la fiecare pas al buclei.
+\begin{verbatim}
+    var i := 0;
+    while i < n
+      invariant 0 <= i
+    {
+      i := i + 1;
+    }
+\end{verbatim}
+Trebuie să demonstrăm că executarea corpului buclei înca o data face ca invariantul să fie valabil din nou. La fel cum Dafny nu va descoperi singur proprietățile unei metode, nu va ști că se păstrează alte proprietăți decât cele elementare ale unei bucle, decât dacă i se spune prin intermediul unui invariant. Cu alte cuvinte, dupa executarea corpului buclei, Dafny va sti doar proprietațile declarate cu ajutorul invarianților. 
+
+\subsection{Terminarea buclei}
+Dafny trebuie sa demonstreze că o buclă while nu se execută la nesfârșit, prin utilizarea adnotărilor \textit{decreases}. Există două locuri în care Dafny trebuie sa demonstreze terminarea: buclele și recursivitatea. Ambele situații necesită fie o adnotare explicită, fie o presupunere corectă din partea lui Dafny. Ca terminarea să poate fi demonstrată trebuie ca Dafny să verifice că expresia devine din ce în ce mai mică, și că aceasta are o limită inferioară. 
+
+
+\section{Aplicabilitate}
+
+Asigurând încredere și corectitudine, Dafny poate fi folosit în numeroase industrii, precum: 
+\begin{itemize}
+    \item \textbf{industria aerospațială} (la navigație, comunicatii și controlul bordului)
+    \item \textbf{industria medicală} (dezvoltarea aparaturii medicale, garantând corectitudinea algoritmilor care receptioneaza si evalueaza diferite semnale)
+    \item \textbf{în criptografie} (la dezvoltarea algoritmilor care asigură condifențialitatea și integritatea datelor)
+    \item  \textbf{securitate cibernetică} (firewall-uri sau sisteme de detectare a intruziunilor, ar putea fi verificate în mod oficial pentru a se asigura că acestea identifică și răspund corect la amenințările de securitate fără a introduce vulnerabilități)
+    \item \textbf{industria automobilelor autonome} (Dafny ar putea fi utilizat pentru a verifica corectitudinea algoritmilor de percepție, de luare a deciziilor și de control, reducând astfel riscul de accidente).
+\end{itemize}
