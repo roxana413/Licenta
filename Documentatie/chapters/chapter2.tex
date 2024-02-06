@@ -1,14 +1,94 @@
 \chapter{Programarea dinamică}
-Facilisi nullam vehicula ipsum a arcu. Purus semper eget duis at tellus at. Adipiscing tristique risus nec feugiat. Eu volutpat odio facilisis mauris sit. Porta nibh venenatis cras sed. Penatibus et magnis dis parturient. Sollicitudin aliquam ultrices sagittis orci a. Senectus et netus et malesuada fames ac turpis egestas integer. Cras tincidunt lobortis feugiat vivamus at augue eget arcu dictum. Leo vel fringilla est ullamcorper eget nulla facilisi etiam dignissim. Nulla aliquet enim tortor at auctor urna nunc id cursus. Elit duis tristique sollicitudin nibh. Sagittis nisl rhoncus mattis rhoncus urna neque viverra. Convallis posuere morbi leo urna molestie at. Quisque egestas diam in arcu cursus euismod.
+Programarea dinamică este o tehnică de proiectare a algoritmilor utilizată pentru rezolvarea problemelor de optimizare.
+Pentru a rezolva o anumită problemă folosind programarea dinamică, trebuie să identifiăm în mod convenabil mai multe subprobleme.
+După ce alegem subproblemele, trebuie să stabilim cum se poate calcula soluția unei subprobleme în funcție de alte subprobleme.
+Principala idee din spatele programării dinamice constă în stocarea rezultatelor subproblemele pentru a evita recalcularea lor de fiecare dată când sunt necesare. În general, programarea dinamică se aplică pentru probleme de optimizare pentru care algoritmii greedy nu produc în general soluția optimă.
 
 \section{Probleme rezolvate cu ajutorul programării dinamice}
+Urmatoarele probleme pot fi rezolvate cu ajutorul programarii dinamice:
+\begin{itemize}
+  \item \textbf {Problema șirului lui Fibonacci} 
+  \item \textbf {Problema buturugii} 
+  \item \textbf {Problema distanței de editare} 
+  \item \textbf {Problema plătii unei sume de bani folosind numar minim de bancnote} 
+  \item \textbf {Problema înmultirii optime a unui sir de matrici}
+  \item \textbf {Problema de selecție a activităților cu profit maxim}
+  
+\end{itemize}
+\subsection{Problema de selecție a activităților cu profit maxim}
+Problema de selecție a activităților cu profit maxim este o problema de optimizare care returneaza pentru o listă de activități caracterizate prin timp de început, timp de sfârsit și profit,  ordonate dupa timpul de sfârșit o secventă de activități care nu se suprapun și al caror profit este maxim. 
+\begin{verbatim}
+    Input: Numarul de activități n = 4
+    Detaliile activităților { timp de inceput, timp de incheiere,  profit}
+       Activitate 1:  {1, 2, 50} 
+       Activitate 2:  {3, 5, 20}
+       Activitate 3:  {6, 19, 100}
+       Activitate 4:  {2, 100, 200}
+    Output: Profit-ul maxim este 250, pentru soluția optimă formata din
+    activitatea 1 si activitatea 4.
+\end{verbatim}
+\subsection{Pseudocod}
+\begin{verbatim}
+struct Activitate {
+    timp de început: int
+    timp de încheiere : int
+    profit : int 
+}
 
-A diam sollicitudin tempor id eu nisl. Hac habitasse platea dictumst vestibulum. Integer enim neque volutpat ac tincidunt. Facilisi nullam vehicula ipsum a arcu cursus vitae congue. Vel turpis nunc eget lorem. Vestibulum mattis ullamcorper velit sed ullamcorper morbi tincidunt ornare. Nunc sed blandit libero volutpat. Sit amet luctus venenatis lectus magna fringilla urna porttitor. Hac habitasse platea dictumst quisque sagittis purus. Sed faucibus turpis in eu mi bibendum neque egestas. Vel orci porta non pulvinar neque laoreet suspendisse interdum consectetur. Erat nam at lectus urna duis convallis convallis tellus id. Tristique sollicitudin nibh sit amet commodo nulla facilisi nullam vehicula. Etiam dignissim diam quis enim lobortis scelerisque. Nunc congue nisi vitae suscipit tellus mauris a diam maecenas. Lacus viverra vitae congue eu consequat ac felis donec. Mauris sit amet massa vitae tortor condimentum. Mauris augue neque gravida in. Lorem ipsum dolor sit amet. Arcu dui vivamus arcu felis bibendum ut tristique et.
+function planificareActivitățiPonderate(activități):
+    // activitățile sunt sortate crescător după timpul de încheiere
+    
+    // inițializăm un vector pentru a stoca profiturile maxime pentru fiecare activitate, fie dp un vector de dimensiune n, unde n este numărul de activități
+    dp[0] = activități[0].profit
+    solutie[0] = [activitati[0]] //un vector binar 0 - nu am ales activitatea si 1 - am ales activitatea
+    solutiiOptime = solutie //stocam soluțiile optime la fiecare pas
+    // Programare dinamică pentru a găsi profitul maxim
+    pentru i de la 1 la n-1:
+        // Găsește cea mai recentă activitate care nu intră în conflict cu activitatea curentă
+        solutiaCuActivitateaI = [1] // selectam activitatea curenta
+        ultimaActivitateNeconflictuală = găseșteUltimaActivitateNeconflictuală(activități, i)
+        
+        // Calculează profitul maxim incluzând activitatea curentă și excluzând-o
+        profitulCuActivitateaCurenta = activități[i].profit
+        dacă ultimaActivitateNeconflictuală != -1:
+            profitulIncluderiiActivitățiiCurente += dp[ultimaActivitateNeconflictuală]
+            solutiaCuActivitateaI = solutiiOptime[ultimaActivitateNeconflictuală] + solutiaCuActivitateaI
+        dp[i] = maxim(profitulIncluderiiActivitățiiCurente, dp[i-1])
+        
+        daca profitulIncluderiiActivitățiiCurente > dp[i-1]:
+            solutie = solutieCuActivitateaI
+        else
+            solutie = solutie + [0]
+        solutiiOptime = solutiiOptime + solutie 
+    // Returnează soluția si profitul maxim
+    return solutie, dp[n-1]
 
-\section{Alte tehnici de proiectare a algoritmilor}
+funcție găseșteUltimaActivitateNeconflictuală(activități, indexCurent):
+    pentru j de la indexCurent-1 la 0:
+        dacă activități[j].timpDeÎncheiere <= activități[indexCurent].timpDeÎnceput:
+            return j
+    return -1
 
-Sit amet mauris commodo quis imperdiet massa tincidunt nunc pulvinar. Ligula ullamcorper malesuada proin libero nunc consequat interdum. Mauris a diam maecenas sed enim ut. Ut sem nulla pharetra diam sit amet nisl suscipit adipiscing. Leo duis ut diam quam nulla. Neque ornare aenean euismod elementum. Vitae sapien pellentesque habitant morbi tristique senectus. Lectus magna fringilla urna porttitor rhoncus dolor purus non enim. Egestas sed sed risus pretium quam vulputate dignissim suspendisse in. At quis risus sed vulputate odio ut enim. Hac habitasse platea dictumst quisque sagittis. Lectus vestibulum mattis ullamcorper velit sed. Massa vitae tortor condimentum lacinia quis vel eros donec ac. Vulputate dignissim suspendisse in est ante. Sed faucibus turpis in eu mi bibendum neque. Enim eu turpis egestas pretium aenean pharetra magna. Tellus mauris a diam maecenas.
+
+
+\end{verbatim}
+
+\subsection{Cum funcționeaza programarea dinamică în cazul acestei probleme}
+Pentru aceasta problemă se poate folosi programarea dinamică, deoarece aceasta poate fi împarțită în subprobleme, respectiv la fiecare pas putem forma o soluție parțiala optimă, de al carei profit ne putem folosi la urmatorul pas. 
+La fiecare pas trebuie să selectăm o activitate în ordinea în care au fost declarate în secvența de intrare (formăm soluția parțială ce conține activitatea curentă), să cautam dacă există în fața acestora activități care nu se suprapun cu ele, daca da, concatenăm cu soluția partiala optimă
+formată cu activități de pâna la activitatea cu care nu se suprapune, apoi dacă aceasta soluție partiala ce conține activitatea curentă are un profit strict mai mare decat cel optim anterior, o alegem, în caz contrar, alegam să nu selectam această activitate. 
+La primul pas soluția parțiala optimă de lungime 1 este formata din Activitatea 1, iar profit-ul maxim este 50. 
+La al 2-lea pas, deoarece activitatea 1 nu se suprapune cu activitatea 2 se obține soluția partiala optimă formata din Activitatea1 și Activitatea2, iar profitul optim la pasul 2 este 50 + 20 = 70, care este mai mare decat cel anterior (condiție necesară). 
+La al 3-lea pas soluția parțială optimă este formata din Activitatea 1, Activitatea 2 și Activitatea 3, deoarece Activitatea 3 nu se suprapune cu activitatea 2 ( înseamnă că nu se suprapune cu soluția partiala de la al 2-lea pas, fiind ordonate dupa timpul se sfârsit) și facem o concatenare cu soluția parțiala de la pas-ul 2 , și totodata profitul pentru această soluție parțiala este strict mai mare decat cel de la pasul 2, noul profit optim devenind 170. 
+La al 4-lea pas, la fel ca și la ceilalți formăm mai întâi o soluție partială care continea Activitatea 4. Selectăm Activitatea 4 și parcurgem secvența de activități (de la actvitatea 4 catre activitatea 1) data ca input pentru a putea găsi dacă există o activitate cu care aceasta să nu se suprapună. Singura activitate cu care nu se suprapune este activitatea 1, și soluția parțială ce conține Activitatea 4 este formata din Activitatea 4 si Activitatea 1. Apoi verificam daca profitul pentru aceasta soluție parțiala = 250 este strict mai mare decat profitul optim anterior = 170, adevărat. Acest lucru înseamnă că soluția parțiala optimă de lungime 4 care este și soluția problemei este formata din Activitatea 1 și Activitatea 4. 
 
 \section{Avantajele programării dinamice față de celelalte tehnici de proiectare}
-
-Faucibus ornare suspendisse sed nisi lacus sed. Mi in nulla posuere sollicitudin aliquam ultrices. Lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit amet. Odio tempor orci dapibus ultrices in iaculis nunc sed augue. Congue eu consequat ac felis donec et odio. Enim ut sem viverra aliquet eget sit amet. Sit amet consectetur adipiscing elit duis tristique sollicitudin. Quis blandit turpis cursus in. Cras fermentum odio eu feugiat pretium nibh ipsum consequat nisl. Non curabitur gravida arcu ac tortor dignissim convallis aenean. Porta non pulvinar neque laoreet suspendisse interdum consectetur libero id. Lacus viverra vitae congue eu consequat ac felis. Vulputate dignissim suspendisse in est ante in nibh mauris. Amet mauris commodo quis imperdiet massa. Varius sit amet mattis vulputate enim nulla aliquet. Pellentesque diam volutpat commodo sed egestas egestas. Amet est placerat in egestas erat imperdiet sed euismod. Scelerisque varius morbi enim nunc faucibus a pellentesque sit. Ut sem viverra aliquet eget sit amet tellus cras. Sem integer vitae justo eget magna fermentum iaculis eu.
+În ceea ce privește programarea dinamică și tehnica greedy, 
+în ambele cazuri apare noțiunea de subproblemă și proprietatea de substructură optimă. De fapt, tehnica greedy poate fi gândită ca un caz particular de programare dinamică, unde rezolvarea unei probleme este determinată direct de alegerea greedy, nefiind nevoie de a
+enumera toate alegerile posibile. Avantajele programării dinamice fața de tehnica greedy sunt:
+\begin{itemize}
+  \item \textbf {Optimizare Globală}: : Programarea dinamică are capacitatea de a găsi soluția optimă globală pentru o problemă, în timp ce algoritmii greedy pot fi limitați la luarea deciziilor locale care pot duce la o soluție suboptimală.
+  \item \textbf {Flexibilitate}: Programarea dinamică poate fi utilizată pentru o gamă mai largă de probleme, inclusiv cele care implică restricții mai complexe sau soluții care necesită evaluarea mai multor posibilități. În comparație, algoritmii greedy sunt adesea limitați la problemele care pot fi rezolvate prin luarea deciziilor locale în fiecare pas.
+  
+\end{itemize}
+Cu toate acestea, algoritmii greedy pot fi mai potriviți pentru problemele care permit luarea de decizii locale și producerea rapidă a unei soluții aproximative.
