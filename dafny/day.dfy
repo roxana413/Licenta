@@ -1,4 +1,9 @@
-datatype Job = Pair(jobStart: int, jobEnd: int, profit: int)
+datatype Job = Tuple(jobStart: int, jobEnd: int, profit: int)
+
+predicate validProblem(jobs: seq<Job>)
+{
+  1 <= |jobs| && validJobsSeq(jobs) && sortedByActEnd(jobs) && distinctJobsSeq(jobs)
+}
 
 predicate JobComparator(job1: Job, job2: Job)
 {
@@ -14,7 +19,7 @@ predicate validJobsSeq(jobs: seq<Job>)
   forall job :: job in jobs ==> validJob(job)
 }
 
-predicate  differentJobs(j1: Job, j2: Job)
+predicate  distinctJobs(j1: Job, j2: Job)
   requires validJob(j1) && validJob(j2)
 {
   j1.jobStart != j2.jobStart || j1.jobEnd != j2.jobEnd
@@ -23,7 +28,7 @@ predicate  differentJobs(j1: Job, j2: Job)
 predicate distinctJobsSeq(s: seq<Job>)
   requires validJobsSeq(s)
 {
-  forall i, j :: 0 <= i < j < |s| ==> differentJobs(s[i], s[j])
+  forall i, j :: 0 <= i < j < |s| ==> distinctJobs(s[i], s[j])
 }
 
 
@@ -455,9 +460,7 @@ lemma OnlY0WhenOverlapJobs(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
 
 //demonstram ca niciun job din allSol[j] nu se suprapune cu i, stiind ca j nu se suprapune cu i
 lemma AddNotOverlappingSeq(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
-  requires validJobsSeq(jobs)
-  requires sortedByActEnd(jobs) //toate job-urile sunt ordonate dupa timpul de sf
-  requires distinctJobsSeq(jobs)
+  requires validProblem(jobs)
   requires |partialSol| < |jobs|
   requires |partialSol| == j + 1; //allSol[j]
   requires 0 <= j < i < |jobs|
@@ -482,9 +485,7 @@ lemma AddNotOverlappingSeq(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
 
 //demonstram ca solutia partiala optinuta prin concatenarea allSol[j] + 0000 + i nu contine job-uri care se suprapun
 lemma NotOverlappingJobsSeq(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int)
-  requires validJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
-  requires distinctJobsSeq(jobs) //toate job-urile sunt ordonate dupa timpul de sf
+  requires validProblem(jobs)
   requires |partialSol| <= |jobs|
   requires |partialSol| == i + 1;
   requires 0 <= j < i < |jobs|
@@ -506,10 +507,7 @@ lemma NotOverlappingJobsSeq(partialSol: seq<int>, jobs: seq<Job>, i: int, j: int
 //allSol secventa de secvente (matrice) ce reprezinta solutiile optime de lungime 0, ... i-1, i cu job-urile pana la pozitia i excusiv
 //demonstram ca solutia de lungime i+1 ce contine job-ul i care se obtine cu aceste preconditii este partiala + optima
 method  OptimalPartialSolutionWhenNonOverlapJob(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>, j : int) returns (maxProfit:int, partialSolution: seq<int>, length: int)
-  requires 1 <= |jobs|
-  requires validJobsSeq(jobs)
-  requires distinctJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
+  requires validProblem(jobs)
   requires 0 <= j < i < |jobs|
   requires |allSol| == i
   requires |dp| == i
@@ -665,9 +663,7 @@ lemma OtherSolHasLessProfitThenMaxProfit(jobs : seq<Job>, i: int, max_profit : i
 //DEMONSTRATA doar 0-uri in fata lui i
 //demonstram ca solutia de lungime i+1 ce contine job-ul i care se obtine cu aceste preconditii este partiala + optima
 method  OptimalPartialSolutionWhenOverlapJob(jobs: seq <Job>, i: int, dp: seq<int>) returns (maxProfit:int, partialSolution: seq<int>, length: int)
-  requires validJobsSeq(jobs)
-  requires distinctJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
+  requires validProblem(jobs)
   requires 1 <= i < |jobs|
   requires |dp| == i
   requires forall k :: -1 < k < i ==> overlappingJobs(jobs[k], jobs[i]) //toate job-urile se suprapun cu i 
@@ -738,10 +734,7 @@ predicate PositiveProfitsDP(dp: seq<int>)
 
 //functia MaxProfitWithJobI intoarce solutia partiala si optima cu job-ul i inclus
 method MaxProfitWithJobI(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>) returns (maxProfit:int, partialSolution: seq<int>)
-  requires validJobsSeq(jobs)
-  requires 1 <= |jobs|
-  requires distinctJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
+  requires validProblem(jobs)
   requires PositiveProfitsDP(dp)
   requires 1 <= i < |jobs|
   requires |allSol| == i
@@ -886,10 +879,7 @@ lemma optimalPartialSolutionWithJobI(i: int, jobs: seq<Job>, maxProfit: int, all
 //ramura din metoda principala in care prin alegerea job-ului i se obtine un profit mai bun decat fara acesta
 //metoda in care calculam solutia partiala de lungime i = solutia partiala cu job-ul i si demonstram ca aceasta este optima, stiind ca profitul acesteia este > decat dp[i-1]
 method leadsToOptimalWithTakingJobI(jobs: seq<Job>, dp:seq<int>, allSol: seq<seq<int>>, i: int, maxProfit: int, partialSolWithJobI: seq<int>) returns (optimalPartialSolution: seq<int>, profits:seq<int>)
-  requires validJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
-  requires distinctJobsSeq(jobs)
-  requires 1 <= |jobs|
+  requires validProblem(jobs)
   requires 1 <= i < |jobs|
   requires |dp| == |allSol| == i
   requires OptimalPartialSolutions(allSol, jobs, dp, i)
@@ -976,10 +966,7 @@ lemma optimalPartialSolutionWithoutJobI(i: int, jobs: seq<Job>, maxProfit: int, 
 
 //ramura in care prin alegerea job-ului i se obtine un profit <= cu cel anterior (dp[i-1]) si nu se adauga job-ul i la solutia optima
 method leadsToOptimalWithoutTakingJobI(jobs: seq<Job>, dp:seq<int>, allSol: seq<seq<int>>, i: int, maxProfit: int, partialSol: seq<int>) returns (optimalPartialSolution: seq<int>, profits:seq<int>)
-  requires validJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
-  requires distinctJobsSeq(jobs)
-  requires 1 <= |jobs|
+  requires validProblem(jobs)
   requires 1 <= i < |jobs|
   requires |dp| == |allSol| == i
   requires OptimalPartialSolutions(allSol, jobs, dp, i)
@@ -1018,10 +1005,7 @@ method leadsToOptimalWithoutTakingJobI(jobs: seq<Job>, dp:seq<int>, allSol: seq<
 
 
 method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : int)
-  requires 1 <= |jobs|
-  requires validJobsSeq(jobs)
-  requires distinctJobsSeq(jobs)
-  requires sortedByActEnd(jobs)
+  requires validProblem(jobs)
   ensures isSolution(sol, jobs)
   ensures isOptimalSolution(sol, jobs)
 {
@@ -1058,7 +1042,7 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
     invariant allSol[i - 1] == solution
     invariant OptimalPartialSolutions(allSol, jobs, dp, i)
     invariant isOptimalPartialSolution(allSol[i - 1], jobs, i)   
-    invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1], 0); //sol par optima
+    invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1], 0) //sol par optima
     invariant forall i :: 0 <= i < |dp| ==> dp[i] >= 0
     invariant isOptimalPartialSolution(solution, jobs, i)
   {
@@ -1097,10 +1081,10 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
 method Main()
 {
   print("Roxana");
-  var job1: Job := Pair(jobStart := 1, jobEnd := 2, profit := 50);
-  var job2: Job := Pair(jobStart := 3, jobEnd := 5, profit := 20);
-  var job3: Job := Pair(jobStart := 6, jobEnd := 19, profit := 100);
-  var job4: Job := Pair(jobStart := 2, jobEnd := 100, profit := 200);
+  var job1: Job := Tuple(jobStart := 1, jobEnd := 2, profit := 50);
+  var job2: Job := Tuple(jobStart := 3, jobEnd := 5, profit := 20);
+  var job3: Job := Tuple(jobStart := 6, jobEnd := 19, profit := 100);
+  var job4: Job := Tuple(jobStart := 2, jobEnd := 100, profit := 200);
   var jobs: seq<Job> := [job1, job2, job3, job4];
   // //secventa de job-uri trebuie sa fie valida (1)
   // //-----------------------------------contina job-uri diferite din pctdv al cel putin un timp (st sau sf)
