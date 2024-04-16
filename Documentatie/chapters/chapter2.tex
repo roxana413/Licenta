@@ -1,86 +1,34 @@
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+
+\lstset{style=mystyle}
+
 \chapter{Programarea dinamică}
 Programarea dinamică este o tehnică de proiectare a algoritmilor utilizată pentru rezolvarea problemelor de optimizare.
 Pentru a rezolva o anumită problemă folosind programarea dinamică, trebuie să identifiăm în mod convenabil mai multe subprobleme.
 După ce alegem subproblemele, trebuie să stabilim cum se poate calcula soluția unei subprobleme în funcție de alte subprobleme.
 Principala idee din spatele programării dinamice constă în stocarea rezultatelor subproblemele pentru a evita recalcularea lor de fiecare dată când sunt necesare. În general, programarea dinamică se aplică pentru probleme de optimizare pentru care algoritmii greedy nu produc în general soluția optimă.
-
-\section{Probleme rezolvate cu ajutorul programării dinamice}
-Urmatoarele probleme pot fi rezolvate cu ajutorul programarii dinamice:
-\begin{itemize}
-  \item \textbf {Problema șirului lui Fibonacci} 
-  \item \textbf {Problema buturugii} 
-  \item \textbf {Problema distanței de editare} 
-  \item \textbf {Problema plătii unei sume de bani folosind numar minim de bancnote} 
-  \item \textbf {Problema înmultirii optime a unui sir de matrici}
-  \item \textbf {Problema de selecție a activităților cu profit maxim}
-  
-\end{itemize}
-\subsection{Problema de selecție a activităților cu profit maxim}
-Problema de selecție a activităților cu profit maxim este o problema de optimizare care returneaza pentru o listă de activități caracterizate prin timp de început, timp de sfârsit și profit,  ordonate dupa timpul de sfârșit o secventă de activități care nu se suprapun și al caror profit este maxim. 
-\begin{verbatim}
-    Input: Numarul de activități n = 4
-    Detaliile activităților { timp de inceput, timp de incheiere,  profit}
-       Activitate 1:  {1, 2, 50} 
-       Activitate 2:  {3, 5, 20}
-       Activitate 3:  {6, 19, 100}
-       Activitate 4:  {2, 100, 200}
-    Output: Profit-ul maxim este 250, pentru soluția optimă formata din
-    activitatea 1 si activitatea 4.
-\end{verbatim}
-\subsection{Pseudocod}
-\begin{verbatim}
-struct Activitate {
-    timp de început: int
-    timp de încheiere : int
-    profit : int 
-}
-
-function planificareActivitățiPonderate(activități):
-    // activitățile sunt sortate crescător după timpul de încheiere
-    
-    // inițializăm un vector pentru a stoca profiturile maxime pentru fiecare activitate, fie dp un vector de dimensiune n, unde n este numărul de activități
-    dp[0] = activități[0].profit
-    solutie[0] = [activitati[0]] //un vector binar 0 - nu am ales activitatea si 1 - am ales activitatea
-    solutiiOptime = solutie //stocam soluțiile optime la fiecare pas
-    // Programare dinamică pentru a găsi profitul maxim
-    pentru i de la 1 la n-1:
-        // Găsește cea mai recentă activitate care nu intră în conflict cu activitatea curentă
-        solutiaCuActivitateaI = [1] // selectam activitatea curenta
-        ultimaActivitateNeconflictuală = găseșteUltimaActivitateNeconflictuală(activități, i)
-        
-        // Calculează profitul maxim incluzând activitatea curentă și excluzând-o
-        profitulCuActivitateaCurenta = activități[i].profit
-        dacă ultimaActivitateNeconflictuală != -1:
-            profitulIncluderiiActivitățiiCurente += dp[ultimaActivitateNeconflictuală]
-            solutiaCuActivitateaI = solutiiOptime[ultimaActivitateNeconflictuală] + solutiaCuActivitateaI
-        dp[i] = maxim(profitulIncluderiiActivitățiiCurente, dp[i-1])
-        
-        daca profitulIncluderiiActivitățiiCurente > dp[i-1]:
-            solutie = solutieCuActivitateaI
-        else
-            solutie = solutie + [0]
-        solutiiOptime = solutiiOptime + solutie 
-    // Returnează soluția si profitul maxim
-    return solutie, dp[n-1]
-
-funcție găseșteUltimaActivitateNeconflictuală(activități, indexCurent):
-    pentru j de la indexCurent-1 la 0:
-        dacă activități[j].timpDeÎncheiere <= activități[indexCurent].timpDeÎnceput:
-            return j
-    return -1
-
-
-
-\end{verbatim}
-
-\subsection{Cum funcționeaza programarea dinamică în cazul acestei probleme}
-Pentru aceasta problemă se poate folosi programarea dinamică, deoarece aceasta poate fi împarțită în subprobleme, respectiv la fiecare pas putem forma o soluție parțiala optimă, de al carei profit ne putem folosi la urmatorul pas. 
-La fiecare pas trebuie să selectăm o activitate în ordinea în care au fost declarate în secvența de intrare (formăm soluția parțială ce conține activitatea curentă), să cautam dacă există în fața acestora activități care nu se suprapun cu ele, daca da, concatenăm cu soluția partiala optimă
-formată cu activități de pâna la activitatea cu care nu se suprapune, apoi dacă aceasta soluție partiala ce conține activitatea curentă are un profit strict mai mare decat cel optim anterior, o alegem, în caz contrar, alegam să nu selectam această activitate. 
-La primul pas soluția parțiala optimă de lungime 1 este formata din Activitatea 1, iar profit-ul maxim este 50. 
-La al 2-lea pas, deoarece activitatea 1 nu se suprapune cu activitatea 2 se obține soluția partiala optimă formata din Activitatea1 și Activitatea2, iar profitul optim la pasul 2 este 50 + 20 = 70, care este mai mare decat cel anterior (condiție necesară). 
-La al 3-lea pas soluția parțială optimă este formata din Activitatea 1, Activitatea 2 și Activitatea 3, deoarece Activitatea 3 nu se suprapune cu activitatea 2 ( înseamnă că nu se suprapune cu soluția partiala de la al 2-lea pas, fiind ordonate dupa timpul se sfârsit) și facem o concatenare cu soluția parțiala de la pas-ul 2 , și totodata profitul pentru această soluție parțiala este strict mai mare decat cel de la pasul 2, noul profit optim devenind 170. 
-La al 4-lea pas, la fel ca și la ceilalți formăm mai întâi o soluție partială care continea Activitatea 4. Selectăm Activitatea 4 și parcurgem secvența de activități (de la actvitatea 4 catre activitatea 1) data ca input pentru a putea găsi dacă există o activitate cu care aceasta să nu se suprapună. Singura activitate cu care nu se suprapune este activitatea 1, și soluția parțială ce conține Activitatea 4 este formata din Activitatea 4 si Activitatea 1. Apoi verificam daca profitul pentru aceasta soluție parțiala = 250 este strict mai mare decat profitul optim anterior = 170, adevărat. Acest lucru înseamnă că soluția parțiala optimă de lungime 4 care este și soluția problemei este formata din Activitatea 1 și Activitatea 4. 
 
 \section{Avantajele programării dinamice față de celelalte tehnici de proiectare}
 În ceea ce privește programarea dinamică și tehnica greedy, 
@@ -92,3 +40,89 @@ enumera toate alegerile posibile. Avantajele programării dinamice fața de tehn
   
 \end{itemize}
 Cu toate acestea, algoritmii greedy pot fi mai potriviți pentru problemele care permit luarea de decizii locale și producerea rapidă a unei soluții aproximative.
+\section{Proprietatea de substructura optimă}
+În cazul problemei de selecție a activităților, proprietatea de substructură optimă se referă la faptul că eliminand o activitate dintr-o soluție parțială optimă, obținem tot o soluție parțiala optimă. Altfel, dacă acest lucru nu ar fi adevărat ar înseamna ca soluția parțială optimă pe care o descompunem nu este cu adevărat optimă. 
+
+\section{Problema de selecție a activităților cu profit maxim}
+Problema de selecție a activităților cu profit maxim este o problema de optimizare care returneaza pentru o listă de activități distincte caracterizate prin timp de început, timp de încheiere și profit,  ordonate dupa timpul de încheiere o secventă de activități care nu se suprapun și al cărui profit este maxim. 
+\begin{lstlisting}[numbers=None]
+    Input: O secventa de activitati caracterizate prin
+    { timp de inceput, timp de incheiere,  profit}
+       Activitate 1:  {1, 2, 50} 
+       Activitate 2:  {3, 5, 20}
+       Activitate 3:  {6, 19, 100}
+       Activitate 4:  {2, 100, 200}
+    Output: Profit-ul maxim este 250, pentru solutia optima formata din activitatea 1 si activitatea 4.
+\end{lstlisting}
+
+\section{Pseudocod}
+\begin{lstlisting}[language=C++]
+
+struct Activitate {
+    timp de inceput: int
+    timp de incheiere : int
+    profit : int 
+}
+function planificareActivitatiPonderate(activitati):
+    // activitatile sunt sortate crescator dupa timpul de incheiere
+    // initializăm un vector pentru a stoca profiturile maxime pentru fiecare activitate, fie dp un vector de dimensiune n, unde n este numărul de activitati
+    dp[0] = activitati[0].profit
+    solutie[0] = [activitati[0]] //un vector binar 0 - nu am ales activitatea si 1 - am ales activitatea
+    solutiiOptime = solutie //stocam soluțiile optime la fiecare pas
+    // Programare dinamica pentru a gasi profitul maxim
+    pentru i de la 1 la n-1:
+        // Gaseste cea mai recenta activitate care nu intra în conflict cu activitatea curenta
+        solutiaCuActivitateaI = [1] // selectam activitatea curenta
+        ultimaActivitateNeconflictuală = gasesteUltimaActivitateNeconflictuala(activitati, i)
+        
+        // Calculează profitul maxim incluzand activitatea curenta si excluzand-o
+        profitulCuActivitateaCurenta = activitati[i].profit
+        daca ultimaActivitateNeconflictuala != -1:
+            profitulIncluderiiActivitatiiCurente += dp[ultimaActivitateNeconflictuala]
+            solutiaCuActivitateaI = solutiiOptime[ultimaActivitateNeconflictuala] + solutiaCuActivitateaI
+        dp[i] = maxim(profitulIncluderiiActivitatiiCurente, dp[i-1])
+        
+        daca profitulIncluderiiActivitatiiCurente > dp[i-1]:
+            solutie = solutieCuActivitateaI
+        else
+            solutie = solutie + [0]
+        solutiiOptime = solutiiOptime + solutie 
+    // Returnează soluția si profitul maxim
+    return solutie, dp[n-1]
+
+function gasesteUltimaActivitateNeconflictuala(activitati, indexCurent):
+    pentru j de la indexCurent-1 la 0:
+        daca activitati[j].timpDeIncheiere <= activitati[indexCurent].timpDeInceput:
+            return j
+    return -1
+\end{lstlisting}
+
+\section{Cum funcționeaza programarea dinamică în cazul acestei problemei de selectie a activitatilor}
+Pentru aceasta problemă se poate folosi programarea dinamică, deoarece aceasta poate fi împarțită în subprobleme, respectiv la fiecare pas putem forma o soluție parțiala optimă, de al carei profit ne putem folosi la urmatorul pas. \\
+\subsection{Proprietatea de substructura optima}
+\subsection{Cum functioneaza programarea dinamica pentru inputul de mai sus}
+O solutie partiala trebuie sa contina doar activitati care nu se suprapun si sa aiba o lungime prestabilita. O solutie partiala este si optima, daca profitul acesteia este mai mare sau egal decat al oricarei alte solutii partiale de aceeasi lungime.  \\
+
+Pentru inputul de mai sus se obtin urmatoarele valori:\\
+\textbf{La primul pas}:
+\begin{enumerate}
+    \item soluția parțiala optimă este formata din Activitatea 1.
+    \item iar profit-ul maxim este 50. \\
+\end{enumerate}
+\textbf{La al 2-lea pas}:
+\begin{enumerate}
+    \item deoarece Activitatea 1 nu se suprapune cu Activitatea 2 se obține soluția partiala optimă formata din Activitatea 1 și Activitatea 2.
+    \item profitul optim la pasul 2 este 50 + 20 = 70, care este mai mare decat cel anterior (condiție necesară).
+\end{enumerate}
+\textbf{La al 3-lea pas}:
+\begin{enumerate}
+    \item soluția parțială optimă este formata din Activitatea 1, Activitatea 2 și Activitatea 3, deoarece Activitatea 3 nu se suprapune cu activitatea 2 ( înseamnă că nu se suprapune cu soluția partiala de la al 2-lea pas, fiind ordonate dupa timpul se sfârsit) si le putem concatena.
+    \item profitul pentru această soluție parțiala este strict mai mare decat cel de la pasul 2, noul profit optim devenind 170. \\
+\end{enumerate}
+\textbf{La al 4-lea pas}:
+\begin{enumerate}
+    \item soluția parțială ce conține Activitatea 4 este formata din Activitatea 4 si Activitatea 1.
+    \item profitul pentru aceasta soluție parțiala este strict mai mare decat profitul optim anterior = 170, noul profit optim devenind 250.
+\end{enumerate} 
+Astfel, soluția problemei este cea de la ultimul pas, fiind formata din Activitatea 1 și Activitatea 4 si avand profitul optim 250. 
+

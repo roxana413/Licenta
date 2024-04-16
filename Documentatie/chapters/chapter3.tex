@@ -1,25 +1,702 @@
-\chapter{Problema de selecție a activităților cu profit maxim}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
 
-Amet venenatis urna cursus eget. Quam vulputate dignissim suspendisse in est ante. Proin nibh nisl condimentum id. Egestas maecenas pharetra convallis posuere morbi. Risus viverra adipiscing at in. Vulputate eu scelerisque felis imperdiet. Cras adipiscing enim eu turpis egestas pretium aenean pharetra. In aliquam sem fringilla ut morbi tincidunt augue. Montes nascetur ridiculus mus mauris. Viverra accumsan in nisl nisi scelerisque eu ultrices vitae. In nibh mauris cursus mattis molestie a iaculis. Interdum consectetur libero id faucibus nisl tincidunt eget. Gravida in fermentum et sollicitudin ac orci. Suscipit adipiscing bibendum est ultricies. Etiam non quam lacus suspendisse. Leo urna molestie at elementum eu facilisis sed odio morbi. Egestas congue quisque egestas diam in arcu cursus. Amet consectetur adipiscing elit ut aliquam purus.
+\lstset{style=mystyle}
+\chapter{Verificarea problemei de selecție a activităților in Dafny}
 
-\section{Descrierea algoritmului}
+\section{Reprezentarea datelor de intrare si a celor de ieșire}
+\subsection{Date de intrare și predicate specifice }
 
-Eros donec ac odio tempor. Facilisi morbi tempus iaculis urna id volutpat. Faucibus in ornare quam viverra orci sagittis eu. Amet tellus cras adipiscing enim eu turpis egestas. Integer feugiat scelerisque varius morbi. Platea dictumst vestibulum rhoncus est pellentesque elit ullamcorper dignissim. Bibendum arcu vitae elementum curabitur. Eu nisl nunc mi ipsum faucibus. Id aliquet lectus proin nibh nisl condimentum id venenatis a. Cras adipiscing enim eu turpis egestas pretium. Quisque non tellus orci ac auctor augue mauris augue. Malesuada pellentesque elit eget gravida cum. Ut lectus arcu bibendum at. Massa id neque aliquam vestibulum morbi blandit. Posuere ac ut consequat semper viverra nam. Viverra adipiscing at in tellus integer feugiat scelerisque varius morbi. Morbi enim nunc faucibus a pellentesque sit amet porttitor eget. Eu feugiat pretium nibh ipsum consequat nisl vel. Nisl purus in mollis nunc sed.
+Pentru a reprezenta o activitate am folosit un tuplu. 
+\begin{lstlisting}[language=C++]
+    datatype Job = Tuple(jobStart: int, jobEnd: int, profit: int)
+\end{lstlisting}
+\begin{itemize}
+    \item \textbf{jobs} de tipul \textbf{\textit{seq$<$Job$>$}} : reprezintă secvența de activități 
+\end{itemize}
+Un predicat este o funcție care returnează o valoare booleana [2]. Acestea sunt folosite ca precondiții și postcondiții în metode. Predicatele pe care le-am folosit la validarea inputului sunt:
 
-\section{Datele problemei}
+\begin{lstlisting}[language=C++]
+predicate validJob(job: Job)
+{
+  job.jobStart < job.jobEnd && job.profit >= 0
+}
 
-Elementum sagittis vitae et leo duis ut diam quam nulla. Purus sit amet volutpat consequat mauris nunc. Tincidunt augue interdum velit euismod in pellentesque massa. Nunc sed augue lacus viverra vitae congue. Porttitor leo a diam sollicitudin. Faucibus pulvinar elementum integer enim. Adipiscing bibendum est ultricies integer quis auctor elit. Blandit aliquam etiam erat velit scelerisque in. A iaculis at erat pellentesque adipiscing commodo elit at. Erat nam at lectus urna duis. Consequat ac felis donec et. Fermentum posuere urna nec tincidunt praesent semper feugiat nibh sed. Proin gravida hendrerit lectus a. Pretium viverra suspendisse potenti nullam ac tortor vitae purus. Arcu cursus euismod quis viverra nibh cras pulvinar mattis. Gravida arcu ac tortor dignissim convallis aenean. Quam nulla porttitor massa id neque aliquam vestibulum morbi. Sed viverra ipsum nunc aliquet. Quis enim lobortis scelerisque fermentum dui faucibus in.
-\subsection{Reprezentarea datelor de intrare si a celor de ieșire}
-\subsection{Tipuri de date folosite în dezvoltarea problemei}
+predicate validJobsSeq(jobs: seq<Job>)
+{
+  forall job :: job in jobs ==> validJob(job)
+}
+\end{lstlisting}
+Predicatul \textbf{validJobsSeq(jobs: seq$<$Job$>$)} asigură faptul ca secvența de activități primită ca input conține doar activitati valide, ceea ce înseamnă că timpul de început este anterior timpului de încheiere și că profitul asociat fiecărei activități este un număr pozitiv.
 
-\section{Implementarea propriu-zisă}
+\begin{lstlisting}[language=C++]
+predicate JobComparator(job1: Job, job2: Job)
+{
+  job1.jobEnd <= job2.jobEnd
+}
+
+predicate sortedByActEnd(s: seq<Job>)
+  requires validJobsSeq(s)
+{
+  forall i, j :: 0 <= i < j < |s| ==> JobComparator(s[i], s[j])
+}
+\end{lstlisting}
+
+Predicatul \textbf{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că secvența de activități primită ca input conține doar activități sortate din punct de vedere al timpului de încheiere. 
+
+\begin{lstlisting}[language=C++]
+predicate  distinctJobs(j1: Job, j2: Job)
+  requires validJob(j1) && validJob(j2)
+{
+  j1.jobStart != j2.jobStart || j1.jobEnd != j2.jobEnd
+}
+
+predicate distinctJobsSeq(s: seq<Job>)
+  requires validJobsSeq(s)
+{
+  forall i, j :: 0 <= i < j < |s| ==> differentJobs(s[i], s[j])
+}
+\end{lstlisting}
+Pentru a ne asigura că secvența de activități primită ca input nu conține activități identice am folosit predicatul \textbf{distinctJobsSeq(s: seq$<$Job$>$)}. 
+
+Aceste 3 predicate le-am unit in unul singur, \textbf{validProblem}.
+
+\begin{lstlisting}
+    predicate validProblem(jobs: seq<Job>)
+{
+  1 <= |jobs| && validJobsSeq(jobs) && sortedByActEnd(jobs) && distinctJobsSeq(jobs)
+}
+\end{lstlisting}
+    
+\subsection{Variabile folosite pentru rezolvare}
+\begin{itemize}
+    \item \textbf{solution} de tipul \textit{seq$<$int$>$} : reprezintă soluția parțială optima obtinuta la fiecare iteratie
+    \item \textbf{partialSol} de tipul \textit{seq$<$int$>$} : reprezintă o soluție parțială
+    \item \textbf{dp} de tipul \textit{seq$<$int$>$}:
+    ce conține toate profiturile optime obținute la fiecare pas
+    \item \textbf{allSol} de tipul \textit{seq$<$seq$<$int$>$$>$} : reprezintă soluțiile parțiale optime obținute la fiecare pas
+   
+\end{itemize}
+
+Predicatele pe care le-am folosit pentru a verifica variabilele intermediare folosite sunt: 
+\begin{lstlisting}[language=C++]
+predicate overlappingJobs(j1:Job, j2:Job)
+  requires validJob(j1)
+  requires validJob(j2)
+{
+  j1.jobEnd > j2.jobStart &&  j2.jobEnd > j1.jobStart 
+}
+
+predicate hasNoOverlappingJobs(partialSol: seq<int>, jobs: seq<Job>)
+  requires validJobsSeq(jobs)
+{
+  |partialSol| <= |jobs|  && forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j])
+}
+
+predicate isPartialSolution(partialSol: seq<int>, jobs: seq<Job>, length: int)
+  requires validJobsSeq(jobs)
+{   
+  |partialSol| == length &&
+  forall i :: 0 <= i <= |partialSol| - 1 ==> (0 <= partialSol[i] <= 1) && hasNoOverlappingJobs(partialSol, jobs)
+}
+\end{lstlisting}
+
+Cu ajutorul acestui predicat, \textbf{isPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} am verificat ca o soluție parțială să aibă lungimea dorita, să conțină doar valori de 0 și 1, iar activitățile care corespund acestui vector caracteristic să nu se suprapună. 
+
+\begin{lstlisting}[language=Python]
+predicate HasLessProfit(partialSol: seq<int>, jobs: seq<Job>,  maxProfit: int, position: int)
+  requires validJobsSeq(jobs)
+  requires 0 <= position < |partialSol| <= |jobs|
+{
+  PartialSolutionPrefixProfit(partialSol, jobs, position) <= maxProfit
+}
+
+ghost predicate isOptimalPartialSolution(partialSol: seq<int>, jobs: seq<Job>, length: int)
+  requires validJobsSeq(jobs)
+  requires 1 <= |jobs| 
+  requires length == |partialSol|
+  requires 1 <= |partialSol| <= |jobs|
+{
+  isPartialSolution(partialSol, jobs, length) &&
+  forall otherSol :: isPartialSolution(otherSol, jobs, length) ==> HasLessProfit(otherSol, jobs, PartialSolutionPrefixProfit(partialSol, jobs, 0), 0)
+}
+\end{lstlisting}
+Predicatul \textbf{isOptimalPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} are rolul de a verifica dacă o soluție parțiala este și optimă. Pentru ca aceasta să fie optimă trebuie să îndeplinească urmatoarele condiții:
+\begin{enumerate}
+    \item să fie o soluție parțială
+    \item orice altă soluție parțială are un profit mai mic decât soluția parțială optimă.
+\end{enumerate}
+
+
+\begin{lstlisting}
+ghost predicate isOptimalPartialSolutionDP(partialSol: seq<int>, jobs: seq<Job>, length : int, dp:int)
+  requires validJobsSeq(jobs)
+  requires 1 <= |partialSol|
+  requires 1 <= length <= |jobs|
+{
+  |partialSol| == length && isOptimalPartialSolution(partialSol, jobs, length) && HasProfit(partialSol, jobs, 0,  dp)
+}
+
+ghost predicate OptimalPartialSolutions(allSol: seq<seq<int>>, jobs: seq<Job>, dp:seq<int>, index: int)
+  requires validJobsSeq(jobs)
+  requires |dp| == |allSol| == index
+  requires 1 <= index <= |jobs|
+{
+  forall i : int :: 0 <= i < index ==> |allSol[i]| == i + 1  && isOptimalPartialSolutionDP(allSol[i], jobs, i + 1, dp[i])
+}
+\end{lstlisting}
+
+Pentru a putea verifica dacă allSol conține doar soluții parțiale optime, am folosit predicatul \textbf{OptimalPartialSolutions(allSol: seq$<$seq$<$int$>$$>$, jobs: seq$<$Job$>$, dp:seq$<$int$>$, index: int)}. Acest predicat verifică pentru o secvență de secvențe:
+\begin{enumerate}
+    \item fiecare secventă să aibă lungimea dorită
+    \item fiecare secventă să fie o soluție parțială optimă
+    \item fiecare secventă să aibă profitul dorit (optim)
+\end{enumerate}
+
+\section{Punctul de intrare în algoritm}
+
+
+\begin{lstlisting}[language=Python]
+    
+    method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : int)
+  requires 1 <= |jobs|
+  requires validJobsSeq(jobs)
+  requires distinctJobsSeq(jobs)
+  requires sortedByActEnd(jobs)
+  ensures isSolution(sol, jobs)
+  ensures isOptimalSolution(sol, jobs)
+{
+  var dp :seq<int> := [];
+  var dp0 := jobs[0].profit; //profitul primului job
+  dp := dp + [dp0];
+  var solution : seq<int> := [1]; //solutia optima de lungime 1
+  var i: int := 1;
+  var allSol : seq<seq<int>> := []; //stocam toate solutiile partiale optime
+  allSol := allSol + [[1]]; //adaugam solutia partiala optima de lungime 1
+
+  assert |solution| == 1;
+  assert |allSol[0]| == |solution|;
+  assert 0 <= solution[0] <= 1;
+
+  assert isPartialSolution(solution, jobs, i);
+  assert validJob(jobs[0]); //profit >=0
+  assert isOptimalPartialSolution(solution, jobs, i); //[1] solutia optima de lungime 1
+
+  while i < |jobs|
+    invariant 1 <= i <= |jobs|
+    decreases |jobs| - i
+    ...invarianti tehnici....
+    invariant isPartialSolution(allSol[i-1], jobs, i)
+    invariant HasProfit(solution, jobs, 0, dp[i - 1])
+    invariant HasProfit(allSol[i - 1], jobs, 0 , dp[i - 1])
+    invariant allSol[i - 1] == solution
+    invariant OptimalPartialSolutions(allSol, jobs, dp, i)
+    invariant isOptimalPartialSolution(allSol[i - 1], jobs, i)   
+    invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1], 0); //sol par optima
+    invariant forall i :: 0 <= i < |dp| ==> dp[i] >= 0
+    invariant isOptimalPartialSolution(solution, jobs, i)
+  {
+    var maxProfit, partialSolWithI := MaxProfitWithJobI(jobs, i, dp, allSol);
+
+    assert maxProfit == PartialSolutionPrefixProfit(partialSolWithI, jobs, 0);
+    assert partialSolutionWithJobI(partialSolWithI, jobs, i);
+
+    //calculeaza maximul dintre excluded profit si included profit
+    //maximul dintre profitul obtinut pana la job-ul anterior si profitul obtinut cu adugarea job-ului curent
+
+    if dp[i-1] >= maxProfit //se obtine un profit mai bun fara job-ul curent
+    {
+      solution, dp := leadsToOptimalWithoutTakingJobI(jobs, dp, allSol, i, maxProfit, solution);
+      assert isOptimalPartialSolution(solution, jobs, i + 1);
+    }
+    else //alegem job-ul i dp[i-1] < maxProfit
+    {
+      solution, dp := leadsToOptimalWithTakingJobI(jobs, dp, allSol, i, maxProfit, partialSolWithI);
+      assert isOptimalPartialSolution(solution, jobs, i + 1);
+    }
+    allSol := allSol + [solution]; //cream secventa de solutii partiale optime
+    i := i + 1;
+  }
+
+  sol := solution;
+  profit := dp[|dp|-1]; //ultimul profit este maxim
+}
+\end{lstlisting}
+Functia care imi genereaza solutia partiala ce contine activitatea i, este \textbf{MaxProfitWithJobI}. Aceasta functie primeste ca parametri: 
+\begin{enumerate}
+    \item \textbf{jobs} : secventa de activitati (problema)
+    \item \textbf{i} : pozitia pe care se afla activitatea cu care vrem sa formam o solutie partiala 
+    \item \textbf{dp} : secventa cu profiturile optime obtinute la pasii anteriori
+    \item \textbf{allSol}: secventa cu solutiile partiale optime obtinute la pasii anteriori
+\end{enumerate}
+Si returneaza:
+\begin{enumerate}
+    \item \textbf{maxProfit}: profitul pentru solutia partiala ce contine activitatea de pe pozitia i din secventa de activitati primita ca data de intrare
+    \item \textbf{partialSolution}: solutia partiala optima 
+\end{enumerate}
+
+\begin{lstlisting}[language=Python]
+    method MaxProfitWithJobI(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>) returns (maxProfit:int, partialSolution: seq<int>)
+  requires validJobsSeq(jobs)
+  requires 1 <= |jobs|
+  requires distinctJobsSeq(jobs)
+  requires sortedByActEnd(jobs)
+  requires PositiveProfitsDP(dp)
+  requires 1 <= i < |jobs|
+  requires |allSol| == i
+  requires |dp| == i
+  requires OptimalPartialSolutions(allSol, jobs, dp, i)
+  ensures isPartialSolution(partialSolution, jobs, i + 1)
+  ensures maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0)
+  ensures partialSolutionWithJobI(partialSolution, jobs, i)
+  ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, maxProfit, 0)
+{
+
+  var max_profit := 0;
+  var partialSolutionPrefix : seq<int> := [];
+  var j := i - 1;
+  var length := 0;
+
+  //cautam un job care nu se suprapune cu i si demonstram ca toate job-urile dintre j si i se suprapun cu i
+  while j >= 0 && jobs[j].jobEnd > jobs[i].jobStart //
+    invariant - 1 <= j < i
+    invariant forall k :: j < k < i ==> jobs[k].jobEnd > jobs[i].jobStart //se suprapun
+    invariant forall k :: j < k < i ==> validJob(jobs[k])
+    invariant forall k :: j < k < i ==> JobComparator(jobs[k], jobs[i]) //din OrderedByEnd
+    invariant forall k :: j < k < i ==> jobs[k].jobEnd > jobs[k].jobStart //din ValidJob
+    invariant forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]) //stiu doar despre ultimul job j ca nu se suprapune cu i
+  {
+    j := j - 1;
+  }
+
+  assert  j != -1 ==> !overlappingJobs(jobs[j], jobs[i]);
+
+  //assume false;
+  if j >= 0 //inseamna ca a gasit un job j cu care nu se suprapune cu i (pe o pozitie >= 0)
+  {
+
+    max_profit, partialSolution, length := OptimalPartialSolutionWhenNonOverlapJob(jobs, i, dp, allSol, j);
+    //assume false;
+
+  }
+  else //nu am gasit niciun job j care sa nu se suprapuna cu i
+  {
+    //assume false;
+    max_profit, partialSolution, length := OptimalPartialSolutionWhenOverlapJob(jobs, i, dp);
+
+  }
+
+  assert isPartialSolution(partialSolution, jobs, length);
+  assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit, 0) ;
+  maxProfit := max_profit;
+  assert maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0);
+}
+\end{lstlisting}
 \subsection{Detalii de implementare}
-\subsection{Metode, funcții, lemme si predicate folosite}
+
+Cum functioneaza algoritmul:
+\begin{enumerate}
+    \item \textbf{Input}: primim ca input variabila activitati care reprezinta o secventa de activitati caracterizate prin timp de inceput, timp de incheiere si profit,  distincte (difere prin cel putin un timp), sortate dupa timpul de incheiere
+    \item \textbf{Programare dinamica}: \\
+    La fiecare iteratie stocam solutiile optime ale subproblemelor si profiturile acestora.
+    \begin{itemize}
+        \item variabila solution, care reprezinta solutia partiala optima la fiecare pas, respectiv solutia optima finala 
+        \item variabila dp, care va contine profiturile optime obtinute la fiecare iteratie
+        \item  variabila allSol care va contine toate solutiile partiale optime obtinute la fiecare pas
+    \end{itemize} 
+    \item \textbf{Iteratii}: 
+    \begin{itemize}
+        \item \textbf{La prima iteratie} solution = [1], dp = activitati[1].profit, allSol = [[1]] 
+        \item \textbf{Selectăm activitatea de pe pozitia i}, unde i = 1... $|$activitati$|$ - 1, în ordinea în care au fost declarate în secvența de intrare
+        \item \textbf{Formăm soluția parțială ce conține activitatea de pe pozitia i}
+        \begin{itemize}
+            \item \textbf{profitul} pentru solutia partiala cu acitivitatea i are valoarea initiala \textbf{activitati[i].profit}
+            \item \textbf{cautam o activitate j}, unde 0 $<$$=$ j $<$ i, care nu se suprapune cu activitatea i, adica activitati[j].timpDeIncheiere $<$$=$activitati[i].timpDeInceput
+            \item \textbf{daca j $>$$=$ 0} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            allSol[j]+ 0...0 + 1, unde:
+            \begin{itemize}
+                \item allSol[j] contine solutia partiala optima cu activitatile de pana la pozitia j inclusiv
+                \item 0-urile reprezinta, \textbf{daca exista}, activitatile dintre j si i care se suprapun cu activitatea de pe pozitia i 
+                \item 1 - inseamna ca activitatea i este selectata
+            \end{itemize}
+            iar \textbf{profitul} pentru solutia partiala ce contine activitatea i este egal cu \textbf{dp[j] + activitati[i].profit}
+             \item \textbf{daca j $=$$=$ -1} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            0...0 + 1, unde: 
+            \begin{itemize}
+                \item 0-urile reprezinta, activitatile din fata activitatii i care se suprapun cu aceasta. 
+                \item 1-inseamna ca activitatea de pe pozitia i a fost selectata 
+            \end{itemize}
+            iar \textbf{profitul} ramane egal cu \textbf{activitati[i].profit}
+        \end{itemize}
+    \item \textbf{Comparam} profitul solutiei partiale ce contine activitatea de pe pozitia i cu profitul care s-ar obtine fara activitatea curenta (dp[i-1]) si \textbf{actualizam} valoarea variabilelor dp si solution
+    \begin{itemize}
+        \item daca dp[i-1] $>$= profitul solutiei partiale cu activitatea i, atunci dp[i] = dp[i-1] si solution = solution + [0]
+        \item daca dp[i-1] $<$ profitul solutiei partiale cu activitatea i, atunci dp[i] = profitul solutiei partiale cu activitatea i si solution = solutia partiala ce contine activitatea i  
+    \end{itemize}
+    \item \textbf{Actualizam valoarea variabila allSol} care retine solutiile partiale optime obtinute la fiecare iteratie, allSol = allSol + [solution] 
+    \end{itemize}
+    \item \textbf{Outputul problemei} este reprezentat de solutia optima \textbf{solution} cu profitul maxim \textbf{dp[$|$activitati$|$ - 1]}  
+\end{enumerate}
+
 \subsection{Precondiții, postcondițiilor și invarianți}
-\subsection{Timeout}
+Preconditiile reprezintă conditii care trebuie sa fie indeplinite la intrarea intr-o metoda. Postconditiile reprezinta conditii care trebuie sa fie indeplinite la iesirea dintr-o metoda.
+Invariantii, la fel ca si preconditiile si postconditiile, reprezinta conditii care trebuie sa fie indeplinite la intrarea in bucla, in timpul buclei si la iesirea din aceasta. In cazul problemei de selectie a activitatilor preconditiile care trebuiesc indeplinite sunt urmatoarele:
+\begin{lstlisting}
+    method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : int)
+  requires 1 <= |jobs|
+  requires validJobsSeq(jobs)
+  requires distinctJobsSeq(jobs)
+  requires sortedByActEnd(jobs)
+\end{lstlisting}
+Astfel, secvența de activități primită ca input trebuie să conțină doar activităti valide, distincte și sortate dupa timpul de încheiere (problema valida). 
+La final, când algoritmul se termină, soluția returnată trebuie să îndeplinească urmatoarele postcondiții: ca aceasta reprezinta o solutie si ca aceasta este optima. 
+
+\begin{lstlisting}[language=Python]
+    predicate validProblem(jobs: seq<Job>)
+{
+  1 <= |jobs| && validJobsSeq(jobs) && sortedByActEnd(jobs) && distinctJobsSeq(jobs)
+}
+
+\end{lstlisting}
+\begin{lstlisting}
+    method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : int)
+      requires validProblem(jobs)
+      ensures isSolution(sol, jobs)
+      ensures isOptimalSolution(sol, jobs)
+\end{lstlisting}
+
+La fiecare iterație a algoritmului, următoarele proprietati sunt invarianți:
+\begin{lstlisting}
+     while i < |jobs|
+    invariant 1 <= i <= |jobs|
+    decreases |jobs| - i
+    invariant i == |dp|
+    invariant 1 <= |dp| <= |jobs|
+    decreases |jobs| - |dp|
+    invariant isPartialSolution(solution, jobs, i) 
+    invariant |solution| == i 
+    invariant i == |allSol| 
+    decreases |jobs| - |allSol|
+    decreases |jobs| - |allSol[i-1]|
+    invariant isPartialSolution(allSol[i-1], jobs, i)
+    invariant HasProfit(solution, jobs, 0, dp[i - 1])
+    invariant HasProfit(allSol[i - 1], jobs, 0 , dp[i - 1])
+    invariant allSol[i - 1] == solution
+    invariant OptimalPartialSolutions(allSol, jobs, dp, i)
+    invariant isOptimalPartialSolution(allSol[i - 1], jobs, i)   
+    invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1], 0) //sol par optima
+    invariant forall i :: 0 <= i < |dp| ==> dp[i] >= 0
+    invariant isOptimalPartialSolution(solution, jobs, i)
+\end{lstlisting}
+Un invariant foarte important este:
+\begin{lstlisting}
+    invariant forall partialSol :: |partialSol| == i  && isPartialSolution(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, dp[i - 1], 0)
+\end{lstlisting}
+deoarece cu ajutorul lui ne asigurăm că la fiecare pas variabila dp reține profitul optim. 
+
+La fel de importante sunt si:
+\begin{lstlisting}
+    invariant isPartialSolution(solution, jobs, i)
+    invariant isOptimalPartialSolution(solution, jobs, i)
+\end{lstlisting}
+care ne asigura ca variabila solution retine la fiecare pas o solutie partiala optima. 
+
+\section{Funcții importante folosite}
+Funcțiile reprezintă un element important pe care le-am folosit la verificarea corectitudinii algoritmului ales. 
+Funcțiile în Dafny sunt asemănătoare funcțiilor matematice, fiind constituite dintr-o singură instrucțiune al cărui tip de return este menționat în antetul acestora.
+Una din funcțiile pe care am folosit-o cel mai des este funcția: \textit{PartialSolutionPrefixProfit(solution: seq$<$int$>$, jobs: seq$<$Job$>$, index: int): int} cu ajutorul căreia calculez profitul unei soluții parțiale, după formula \[ \sum_{i=0}^{|partialSol|} partialSol[i] * jobs[i]. \]
+
+\begin{lstlisting}[language=C++]
+    function PartialSolutionPrefixProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
+        requires 0 <= index <= |solution|
+        requires 0 <= |solution| <= |jobs|
+        requires 0 <= |solution|
+        decreases |solution| - index 
+        decreases |jobs| - index
+        ensures PartialSolutionPrefixProfit(solution, jobs, index) == if index == |solution| then 0 else solution[index] * jobs[index].profit + PartialSolutionPrefixProfit(solution, jobs, index + 1)
+{   
+    if index == |solution| then 0 else solution[index] * jobs[index].profit + PartialSolutionPrefixProfit(solution, jobs, index + 1)
+}
+\end{lstlisting}
+\subsection{Date de ieșire și predicate specifice }
+\begin{itemize}
+    \item \textbf{sol} de tipul {\textit{seq$<$int$>$}} : reprezintă soluția optimă finală pentru secvența de activități data ca și input
+    \item \textbf{profit} de tipul \textit{int} : reprezintă profitul maxim al soluției optime finale
+\end{itemize}
+
+\begin{lstlisting}
+predicate isSolution(solution: seq<int>, jobs: seq <Job>)
+  requires validJobsSeq(jobs)
+{
+  isPartialSolution(solution, jobs, |jobs|)
+}
+
+ghost predicate isOptimalSolution(solution: seq<int>, jobs: seq<Job>)
+  requires validJobsSeq(jobs)
+  requires 1 <= |jobs|
+  requires |solution| == |jobs|
+{
+  isSolution(solution, jobs) &&
+  forall otherSol :: isSolution(otherSol, jobs) ==>  PartialSolutionPrefixProfit(solution, jobs, 0) >=  PartialSolutionPrefixProfit(otherSol, jobs, 0)
+}
+\end{lstlisting}
+Predicatul \textbf{isSolution(solution: seq$<$int$>$, jobs: seq $<$Job$>$)} este asemănător cu predicatul  \textbf{isPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)}, doar că după cum se poate observa din antetul acestuia, lipseste variabila length, deoarece acum lungimea soluției trebuie sa fie egală cu lungimea secvenței de activități primită ca input. Același lucru se aplică și pentru predicatul \textbf{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} care verifică:
+\begin{enumerate}
+    \item secvența primită să fie o soluție 
+    \item orice altă secvență care este o soluție să aibă un profit mai mic decât aceasta
+\end{enumerate}
+
+\subsection{Descrierea datelor de iesire}
+Variabila de ieșire, denumită "sol", este reprezentată printr-un vector caracteristic al secvenței de activități primite ca date de intrare. Acest vector conține doar valori de 0 și 1, unde 0 înseamnă că o activitate nu a fost selectată, în timp ce 1 indică faptul că activitatea respectivă a fost selectată.
+
+\section{Punctele cele mai interesante}
+Unul din punctele complexe a fost atunci când am fost nevoita să recurg la leme pentru a demonstra anumite proprietăți. Lemmele reprezintă blocuri de instructiuni care au ca scop demonstrarea unor teoreme pe care Dafny nu reuseste sa le demonstreze de unul singur. [3]
+
+Lemma \textbf{OtherSolHasLessProfitThenMaxProfit2} am folosit-o pentru a demonstra ca orice alta \textbf{solutie partiala} care:
+\begin{enumerate}
+    \item \textbf{contine activitatea de pe pozitia i}
+    \item orice activitatea aflata pe oricare din pozitiile \textit{j + 1, ..., i - 1} \textbf{se suprapune cu activitatea i}, unde \textit{0 $<=$ j $<$ i}
+    \item activitatea de pe pozitia \textbf{j} \textbf{nu se suprapune} cu activitatea de pe pozitia \textbf{i} 
+\end{enumerate}
+are un \textbf{profit mai mic sau egal} cu cel al solutiei partiale care indeplineste aceleasi proprietati, doar ca \textbf{substructura formata din activitatile de pe pozitia 0 pana la pozitia j este optima}. 
+
+\begin{lstlisting}[language=Python]
+lemma OtherSolHasLessProfitThenMaxProfit2(partialSol: seq<int>, jobs : seq<Job>, i: int, j : int, max_profit : int, allSol : seq<seq<int>>, dp: seq<int>)
+  requires validJobsSeq(jobs)
+  requires 1 <= |jobs|
+  requires 0 <= j < i < |jobs|
+  requires |allSol| == |dp| == i  //nr de profituri optime pentru solutiile partiale optime din fata lui este egal i
+  requires OptimalPartialSolutions(allSol, jobs, dp, i)
+  requires isOptimalPartialSolution(allSol[j], jobs, j + 1) //stim ca allSol[j] este solutia partiala optima pana la pozitia j si are profitul pozotiv dp[j]
+  requires max_profit == dp[j] + jobs[i].profit //profitul pentru allSol[j] si profitul pentru job-ul i
+  requires forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i])
+  requires !overlappingJobs(jobs[j], jobs[i])
+  requires forall k :: 0 <= k <= j && allSol[j][k] != 0 ==> !overlappingJobs(jobs[k], jobs[i]) //allSol[1] are 2 elemente pe poz 0 si 1
+  requires |partialSol| == i + 1
+  requires partialSolutionWithJobI(partialSol, jobs, i)
+  requires PartialSolutionPrefixProfit(partialSol, jobs, i) == jobs[i].profit;
+  requires isPartialSolution(partialSol, jobs, i + 1)
+  requires forall k :: j < k < i ==> partialSol[k] == 0
+  ensures HasLessProfit(partialSol, jobs, max_profit, 0)
+{
+
+  var k : int := i - 1; // pe pozitia i se afla job-ul i
+  assert |partialSol| == i + 1;
+  assert j <= k < i;
+  //assert !exists k' :: k < k' < i;
+
+  assert forall k' :: k < k' < i ==> partialSol[k'] == 0; //asta vreau sa demonstrez ==> ca am doar 0 -rouri pe pozitiile i - 1 ...0
+  assert PartialSolutionPrefixProfit(partialSol, jobs, i) == jobs[i].profit;
+
+  ComputeProfitWhenOnly0BetweenJI(partialSol, jobs, i, j);
+  assert PartialSolutionPrefixProfit(partialSol, jobs, j + 1) == jobs[i].profit;
+  
+  //presupunem contrariul
+  if !HasLessProfit(partialSol, jobs, max_profit, 0) //presupunem ca ar exista o solutie partiala care indeplineste conditiile si care
+    //sa aiba profitul mai mare decat max_profit
+  {
+    var profit' := PartialSolutionPrefixProfit(partialSol, jobs, 0);
+    assert max_profit == dp[j] + jobs[i].profit;
+
+    assert HasMoreProfit(partialSol, jobs, max_profit, 0);
+    assert !HasLessProfit(partialSol, jobs, max_profit, 0);
+    
+    assert partialSol[..j+1] + partialSol[j+1..] == partialSol;
+    //apelam lemmele ajutatoare pt a demonstra linia 400
+    SplitSequenceProfitEquality(partialSol, jobs, 0, j + 1);
+    EqOfProfitFuncFromIndToEnd(partialSol, jobs, 0);
+    EqOfProfFuncUntilIndex(partialSol, jobs, 0, j + 1);
+    EqOfProfitFuncFromIndToEnd(partialSol, jobs, j + 1);
+  
+    assert PartialSolutionPrefixProfit(partialSol[..j + 1], jobs, 0) + PartialSolutionPrefixProfit(partialSol, jobs, j + 1) == PartialSolutionPrefixProfit(partialSol, jobs, 0);
+    assert PartialSolutionPrefixProfit(partialSol, jobs, j + 1) == jobs[i].profit; //(2)
+    
+    var partialSol' :seq<int> := partialSol[..j + 1];
+    assert isPartialSolution(partialSol', jobs, j + 1);
+    var profit := PartialSolutionPrefixProfit(partialSol', jobs, 0); //(1)
+
+    assert |partialSol'| == j + 1;
+    assert profit + jobs[i].profit == profit'; //(linia 400)
+    assert profit + jobs[i].profit > max_profit; //ipoteza de la care am plecat 
+    assert profit > max_profit - jobs[i].profit;
+    assert profit > dp[j];
+    HasMoreProfitThanOptimalPartialSol(allSol[j], jobs, partialSol');
+    assert !isOptimalPartialSolution(allSol[j], jobs, j + 1); //contradictie
+    //assume false;
+    assert false;
+  }
+\end{lstlisting}
+Aceasta lema am folosit-o in cadrul metodei \textbf{OptimalPartialSolutionWhenNonOverlapJob} (linia 79) pe care o apelez in metoda \textbf{MaxProfitWithJobI}  pe ramura cu \textit{j $>=$ 0}, adica atunci cand gasim o activitate pe o pozitie j in fata activitatii de pe pozitia i, care nu se suprapune cu aceasta. 
+\begin{lstlisting}[language = Python]
+    method  OptimalPartialSolutionWhenNonOverlapJob(jobs: seq <Job>, i: int, dp: seq<int>, allSol :seq<seq<int>>, j : int) returns (maxProfit:int, partialSolution: seq<int>, length: int)
+      requires validProblem(jobs)
+      requires 0 <= j < i < |jobs|
+      requires |allSol| == i
+      requires |dp| == i
+      requires OptimalPartialSolutions(allSol, jobs, dp, i)
+      requires !overlappingJobs(jobs[j], jobs[i]);
+      requires jobs[j].jobEnd <= jobs[i].jobStart
+      requires forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]) //job-urile de pe pozitiile j+1..i-1 se suprapun cu i
+      requires !overlappingJobs(jobs[j], jobs[i]);
+      ensures isPartialSolution(partialSolution, jobs, i + 1)
+      ensures partialSolutionWithJobI(partialSolution, jobs, i)
+      ensures maxProfit == PartialSolutionPrefixProfit(partialSolution, jobs, 0)
+      ensures forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, maxProfit, 0)
+      ensures length == i + 1;
+    {
+      var partialSolutionPrefix : seq<int> := [];
+      var max_profit : int := 0 ;
+      length := 0;
+      
+      partialSolutionPrefix := allSol[j];
+      length := length + |allSol[j]|;
+      
+      assert forall i :: 0 <= i <= length - 1 ==> 0 <= partialSolutionPrefix[i] <= 1; //toate elementele sunt 0 sau 1
+      assert hasNoOverlappingJobs(partialSolutionPrefix, jobs); //nu are job-uri care se suprapun pentru ca allSol[j] este solutie partiala optima
+      
+      max_profit := max_profit + dp[j]; //adaug profitul pt solutia partiala optima (cu job-uri pana la pozitia j)
+      
+      var nr_of_zeros := i - |allSol[j]|; // nr de elemente dintre i si j
+    
+      while nr_of_zeros > 0
+        decreases nr_of_zeros
+        invariant 0 <= nr_of_zeros <= i - |allSol[j]| //setam limitele pentru nr_of_zeros
+        decreases i - length
+        invariant |allSol[j]| <= length <= i //imp
+        invariant |partialSolutionPrefix| == length
+        invariant forall k :: 0 <= k <= length - 1 ==> 0 <= partialSolutionPrefix[k] <= 1
+        invariant length < |jobs|;
+        invariant length == i - nr_of_zeros
+        invariant hasNoOverlappingJobs(partialSolutionPrefix, jobs)
+        invariant forall k :: j < k < |partialSolutionPrefix| ==> partialSolutionPrefix[k] == 0
+        invariant max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0)
+      {
+        //assume false;
+        AssociativityOfProfitFunc(partialSolutionPrefix, jobs, 0, 0); //demonstram ca daca adaugam 0 profitul "ramane acelasi" 0 * jobs[..]
+        assert max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0);
+        partialSolutionPrefix :=  partialSolutionPrefix + [0]; //se adauga de nr_of_zeros ori
+        assert length + nr_of_zeros < |jobs|;
+        length := length + 1;
+        nr_of_zeros := nr_of_zeros - 1;
+        assert max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0);
+      }
+    
+      assert length == i;
+      assert |partialSolutionPrefix| == i ;
+    
+      assert forall k :: j < k < i ==> partialSolutionPrefix[k] == 0;
+      assert forall k :: j < k < i ==> overlappingJobs(jobs[k], jobs[i]); //stim ca toate job-urile strict mai mari decat j se suprapun cu i
+    
+      assert isPartialSolution(partialSolutionPrefix, jobs, i);
+    
+      assert hasNoOverlappingJobs(partialSolutionPrefix + [1], jobs); // lemmas before
+    
+      AssociativityOfProfitFunc(partialSolutionPrefix, jobs, 1, 0); //apelam inainte sa adaugam 1
+      partialSolutionPrefix := partialSolutionPrefix + [1]; //includem si job-ul i (solutia partiala ce contine job-ul i)
+      length := length + 1;
+      max_profit := max_profit + jobs[i].profit;
+    
+      assert isPartialSolution(partialSolutionPrefix, jobs, i + 1);
+      assert max_profit == PartialSolutionPrefixProfit(partialSolutionPrefix, jobs, 0); //lemma
+      forall partialSol | |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i)
+        ensures HasLessProfit(partialSol, jobs, max_profit, 0)
+      {
+        //assume forall k :: j < k < i ==> partialSol[k] == 0;
+        OnlY0WhenOverlapJobs(partialSol, jobs, i, j); //stim ca daca toate job-urile dintre i si j se suprapun, inseamna ca putem avea doar 0-uri
+        assert forall k :: j < k < i ==> partialSol[k] == 0;
+        ProfitLastElem(partialSol, jobs, i);
+        assert PartialSolutionPrefixProfit(partialSol, jobs, i) == jobs[i].profit;
+        OtherSolHasLessProfitThenMaxProfit2(partialSol, jobs, i, j, max_profit, allSol, dp);
+        //assume false;
+      }
+    
+      //assert forall partialSol :: |partialSol| == i + 1 && partialSolutionWithJobI(partialSol, jobs, i) ==> HasLessProfit(partialSol, jobs, max_profit, 0) ;
+      maxProfit := max_profit;
+      partialSolution := partialSolutionPrefix;
+}
+\end{lstlisting}
+
+Pentru a demonstra aceasta lema am presupus ca ar exista o alta solutie partiala cu aceleasi proprietati care ar avea un profit mai mare decat solutia partiala optima obtinuta. Astfel, in urma calculelor, am gasit ca exista o alta solutie partiala de lungime j $+$ 1 al carui profit este mai mare decat cel al solutiei partiale optime de lungime j $+$ 1, ceea ce este imposibil, deoarece ar contrazice ipoteza de la care am plecat. In acest mod, am identificat si \textbf{proprietatea de substructura optima}, care se ascunde in aceasta lema. 
+
+\begin{lstlisting}
+lemma HasMoreProfitThanOptimalPartialSol(optimalPartialSol: seq<int>, jobs: seq<Job>, partialSol: seq<int>)
+  requires validJobsSeq(jobs)
+  requires 1 <= |optimalPartialSol| <= |jobs|
+  requires |optimalPartialSol| == |partialSol|
+  requires isPartialSolution(partialSol, jobs, |partialSol|)
+  requires isOptimalPartialSolution(optimalPartialSol, jobs, |optimalPartialSol|)
+  requires PartialSolutionPrefixProfit(partialSol, jobs, 0) > PartialSolutionPrefixProfit(optimalPartialSol, jobs, 0)
+  ensures !isOptimalPartialSolution(optimalPartialSol, jobs, |optimalPartialSol|)
+{
+  var other_profit := PartialSolutionPrefixProfit(partialSol, jobs, 0);
+  var optimalPartialSolProfit := PartialSolutionPrefixProfit(optimalPartialSol, jobs, 0);
+  assert forall otherSol:: isPartialSolution(otherSol, jobs, |optimalPartialSol|) ==> HasLessProfit(otherSol, jobs, optimalPartialSolProfit, 0);
+  assert other_profit > optimalPartialSolProfit;
+  assert !isOptimalPartialSolution(optimalPartialSol, jobs, |optimalPartialSol|);
+
+}
+\end{lstlisting}
+În lema "HasMoreProfitThanOptimalPartialSol" am confirmat că în cazul în care există o altă soluție parțială cu un profit mai mare decât cel al soluției optime, atunci soluția considerată optimă nu poate fi cu adevărat optimă.
+
+De asemenea, consider că și lemele pe care le-am demonstrat folosind inducția au fost la fel de complexe, precum "AssociativityOfProfitFunc".
+
+\begin{lstlisting}
+lemma AssociativityOfProfitFunc(partialSolPrefix : seq<int>, jobs: seq<Job>, val: int, index: int)
+  requires 1 <= |jobs|
+  requires validJobsSeq(jobs)
+  requires 0 <= index <= |partialSolPrefix|
+  requires 0 <= val <= 1
+  requires 0 <= |partialSolPrefix| < |jobs| //pentru a ne asiguram ca nu depasim nr de job-uri
+  decreases |partialSolPrefix| - index
+  ensures PartialSolutionPrefixProfit(partialSolPrefix, jobs, index) + val * jobs[|partialSolPrefix|].profit ==
+          PartialSolutionPrefixProfit(partialSolPrefix + [val], jobs, index)
+{
+  //inductie prin recursivitate
+  if |partialSolPrefix| == index { //pentru ultima valoare se demonstreaza
+  }
+  else
+  {
+    AssociativityOfProfitFunc(partialSolPrefix , jobs, val, index + 1);
+  }
+}
+
+\end{lstlisting}
+In cadrul acestei lemme se poate observa cum am demonstrat proprietatea de asociativitate a functiei  PartialSolutionPrefixProfit, care imi calculeaza profitul pentru o solutie partiala, astfel incat daca adaugam un element la capatul unei solutii partiale, valoarea profitului acesteia creste cu valoarea profitului activitatii adaugate. 
 
 \section{Mod de lucru}
-\subsection{Assume false}
+In timpul dezvoltarii codului, un aspect important a fost modul de lucru. Pasii pe care i-am urmat pentru a-mi usura munca au fost:
+\begin{enumerate}
+    \item instructiunea \textbf{assume false} pentru a prespune anumite bucati de cod a fi false (Dafny nu mai incerca demonstrarea lor), incat sa evit situatiile in care metodele deveneau fragile (timeout) si nu mai puteam identifica la care linie este o eroare
+    \item utilizarea \textbf{assert-urilor} pentru a vedea exact de la ce linie o proprietatea nu mai este indeplinita sau daca am reusit sa demonstrez o anumita proprietate
+\end{enumerate}
+\subsection{Timeout}
+De multe ori, pe parcursul dezvoltarii codului s-a intamplat ca unele metode sa conduca la timeout. Acest lucru se intampla atunci cand acestea contin prea multe instructiuni care trebuiesc demonstrate, crescand gradul de complexitate al acestora.
+Pentru a evita timeout-urile, cea mai buna solutie a fost sa refactorizez metodele si lemmele care aveau aceasta problema, extragand partile de cod critice pe care sa le demonstrez separat intr-o alta lemma. Prin această abordare, nu doar că am reușit să reduc timpul de demonstrare, dar și să îmbunătățesc claritatea și modularitatea codului meu, făcându-l mai ușor de întreținut și de înțeles în viitor.
+
+
+
+
+
 
 
 
