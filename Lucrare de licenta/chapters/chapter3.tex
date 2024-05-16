@@ -1,0 +1,767 @@
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\chapter{Verificarea problemei de selecție a activităților in Dafny}
+
+\section{Reprezentarea datelor de intrare si a celor de ieșire}
+\subsection{Date de intrare și predicate specifice }
+
+Pentru a reprezenta o activitate am folosit un tuplu. 
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{datatype} \PY{n+nc}{Job} \PY{o}{=} \PY{n}{Tuple}\PY{p}{(}\PY{n}{jobStart}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{jobEnd}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{profit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+\end{Verbatim}
+Problema de selectie a activitatilor are ca date de intrare un singur parametru:
+\begin{itemize}
+    \item \textbf{jobs} de tipul \textbf{\textit{seq$<$Job$>$}} : reprezintă secvența de activități 
+\end{itemize}
+Un predicat este o funcție care returnează o valoare booleana.\cite{DBLP:series/natosec/KoenigL12} Acestea sunt folosite ca precondiții și postcondiții în metode. Predicatele pe care le-am folosit la validarea datelor de intrare sunt:
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{job}\PY{p}{.}\PY{n}{jobStart} \PY{o}{\PYZlt{}} \PY{n}{job}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{job}\PY{p}{.}\PY{n}{profit} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{predicate} \PY{n+nf}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k}{forall} \PY{n}{job} \PY{p}{::} \PY{n}{job} \PY{o}{in} \PY{n}{jobs} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+Predicatul \textbf{validJobsSeq(jobs: seq$<$Job$>$)} asigură faptul ca secvența de activități primită ca data de intrare conține doar activitati valide, ceea ce înseamnă că timpul de început este anterior timpului de încheiere și că profitul asociat fiecărei activități este un număr pozitiv.
+
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{JobComparator}\PY{p}{(}\PY{n}{job1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{job2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{job1}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZlt{}=} \PY{n}{job2}\PY{p}{.}\PY{n}{jobEnd}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{predicate} \PY{n+nf}{sortedByActEnd}\PY{p}{(}\PY{n}{s}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k}{forall} \PY{n}{i}\PY{p}{,} \PY{n}{j} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{s}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{JobComparator}\PY{p}{(}\PY{n}{s}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{,} \PY{n}{s}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+Predicatul \textbf{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că in secvența de activități primită activitatile sunt sortate din punct de vedere al timpului de încheiere. 
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate}  \PY{n+nf}{distinctJobs}\PY{p}{(}\PY{n}{j1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{j2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j1}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{j2}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{j1}\PY{p}{.}\PY{n}{jobStart} \PY{o}{!=} \PY{n}{j2}\PY{p}{.}\PY{n}{jobStart} \PY{o}{|}\PY{o}{|} \PY{n}{j1}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{!=} \PY{n}{j2}\PY{p}{.}\PY{n}{jobEnd}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{predicate} \PY{n+nf}{distinctJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k}{forall} \PY{n}{i}\PY{p}{,} \PY{n}{j} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{s}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{distinctJobs}\PY{p}{(}\PY{n}{s}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{,} \PY{n}{s}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+Pentru a ne asigura că secvența de activități primită ca input nu conține activități identice am folosit predicatul \textbf{distinctJobsSeq(s: seq$<$Job$>$)}. 
+
+Aceste 3 predicate le-am unit intr-unul singur, \textbf{validProblem}.
+
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \PY{k+kd}{predicate} \PY{n+nf}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{sortedByActEnd}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+   \PY{o}{\PYZam{}\PYZam{}} \PY{n}{distinctJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+\subsection{Variabile folosite pentru rezolvare}
+\begin{itemize}
+    \item \textbf{solution} de tipul \textit{seq$<$int$>$} : reprezintă soluția parțială optima obtinuta la fiecare iteratie
+    \item \textbf{partialSol} de tipul \textit{seq$<$int$>$} : reprezintă o soluție parțială
+    \item \textbf{dp} de tipul \textit{seq$<$int$>$}:
+    ce conține toate profiturile optime obținute la fiecare pas
+    \item \textbf{allSol} de tipul \textit{seq$<$seq$<$int$>$$>$} : reprezintă soluțiile parțiale optime obținute la fiecare pas
+   
+\end{itemize}
+
+Predicatele pe care le-am folosit pentru a verifica corectitudinea valorilor variabilelor intermediare folosite sunt: 
+
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{overlappingJobs}\PY{p}{(}\PY{n}{j1}\PY{p}{:}\PY{n}{Job}\PY{p}{,} \PY{n}{j2}\PY{p}{:}\PY{n}{Job}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j1}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j2}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{j1}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZgt{}} \PY{n}{j2}\PY{p}{.}\PY{n}{jobStart} \PY{o}{\PYZam{}\PYZam{}}  \PY{n}{j2}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZgt{}} \PY{n}{j1}\PY{p}{.}\PY{n}{jobStart} 
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{predicate} \PY{n+nf}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}  \PY{o}{\PYZam{}\PYZam{}} \PY{k}{forall} \PY{n}{i}\PY{p}{,} \PY{n}{j} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}
+   \PY{o}{==}\PY{o}{\PYZgt{}} \PY{p}{(}\PY{n}{partialSol}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{1} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{partialSol}\PY{p}{[}\PY{n}{j}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{1}\PY{p}{)}
+    \PY{o}{==}\PY{o}{\PYZgt{}} \PY{err}{!}\PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{predicate} \PY{n+nf}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZob{}}   
+  \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{length} \PY{o}{\PYZam{}\PYZam{}} \PY{k}{forall} \PY{n}{i} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1} \PY{o}{==}\PY{o}{\PYZgt{}} 
+    \PY{p}{(}\PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{partialSol}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{\PYZlt{}=} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+Cu ajutorul acestui predicat, \textbf{isPartialSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} am verificat ca o soluție parțială să aibă lungimea dorita, să conțină doar valori de 0 și 1, iar activitățile care corespund acestui vector caracteristic să nu se suprapună.
+
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}  \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,}
+ \PY{n}{position}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{position} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+\PY{p}{\PYZob{}}
+  \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{position}\PY{p}{)} \PY{o}{\PYZlt{}=} \PY{n}{maxProfit}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptParSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} 
+  \PY{k}{requires} \PY{n}{length} \PY{o}{==} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+\PY{p}{\PYZob{}}
+  \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{length}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}}
+  \PY{k}{forall} \PY{n}{otherSol} \PY{p}{::} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{length}\PY{p}{)}
+   \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,}
+    \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+
+Predicatul \textbf{isOptParSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} are rolul de a verifica dacă o soluție parțiala este și optimă. Pentru ca aceasta să fie optimă trebuie să îndeplinească urmatoarele condiții:
+\begin{enumerate}
+    \item să fie o soluție parțială
+    \item orice altă soluție parțială are un profit mai mic decât soluția parțială optimă.
+\end{enumerate}
+
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptParSolDP}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{length} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:}\PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{length} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+\PY{p}{\PYZob{}}
+  \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{length} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{length}\PY{p}{)}
+   \PY{o}{\PYZam{}\PYZam{}} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,}  \PY{n}{dp}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{dp}\PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==} \PY{o}{|}\PY{n}{allSol}\PY{o}{|} \PY{o}{==} \PY{n}{index}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{index} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+\PY{p}{\PYZob{}}
+  \PY{k}{forall} \PY{n}{i} \PY{p}{:} \PY{k+kt}{int} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{index} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} 
+   \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isOptParSolDP}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+Pentru a putea verifica dacă allSol conține doar soluții parțiale optime, am folosit predicatul \textbf{OptParSolutions(allSol: seq$<$seq$<$int$>$$>$, jobs: seq$<$Job$>$, dp:seq$<$int$>$, index: int)}. Acest predicat verifică pentru o secvență de secvențe:
+\begin{enumerate}
+    \item fiecare secventă să aibă lungimea dorită
+    \item fiecare secventă să fie o soluție parțială optimă
+    \item fiecare secventă să aibă profitul dorit (optim)
+\end{enumerate}
+
+\section{Punctul de intrare în algoritm}
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{isSolution}\PY{p}{(}\PY{n}{sol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{isOptimalSolution}\PY{p}{(}\PY{n}{sol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k+kd}{var} \PY{n}{dp} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{p}{]}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{dp0} \PY{o}{:=} \PY{n}{jobs}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;}
+  \PY{n}{dp} \PY{o}{:=} \PY{n}{dp} \PY{o}{+} \PY{p}{[}\PY{n}{dp0}\PY{p}{]}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{solution} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{;} 
+  \PY{k+kd}{var} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int} \PY{o}{:=} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{allSol} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{p}{]}\PY{p}{;} 
+  \PY{n}{allSol} \PY{o}{:=} \PY{n}{allSol} \PY{o}{+} \PY{p}{[}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{]}\PY{p}{;}
+
+  \PY{k}{assert} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{==} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{k}{assert} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{|} \PY{o}{==} \PY{o}{|}\PY{n}{solution}\PY{o}{|}\PY{p}{;}
+  \PY{k}{assert} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{solution}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]} \PY{o}{\PYZlt{}=} \PY{l+m+mi}{1}\PY{p}{;}
+
+  \PY{k}{assert} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}\PY{p}{;}
+  \PY{k}{assert} \PY{n}{validJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}\PY{p}{;} \PY{c+c1}{//profit \PYZgt{}=0}
+  \PY{k}{assert} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}\PY{p}{;}
+
+  \PY{k}{while} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{n}{i}
+    \PY{k}{invariant} \PY{n}{i} \PY{o}{==} \PY{o}{|}\PY{n}{dp}\PY{o}{|}
+    \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{dp}\PY{o}{|}
+    \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+    \PY{k}{invariant} \PY{n}{i} \PY{o}{==} \PY{o}{|}\PY{n}{allSol}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{|}
+    \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0} \PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{n}{solution}
+    \PY{k}{invariant} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} 
+     \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
+      \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{i} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{dp}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
+    \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{p}{\PYZob{}}
+    \PY{k+kd}{var} \PY{n}{maxProfit}\PY{p}{,} \PY{n}{partialSolWithI} \PY{o}{:=} \PY{n}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{allSol}\PY{p}{)}\PY{p}{;}
+
+    \PY{k}{if} \PY{n}{dp}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{\PYZgt{}=} \PY{n}{maxProfit}
+    \PY{p}{\PYZob{}}
+
+      \PY{n}{solution}\PY{p}{,} \PY{n}{dp} \PY{o}{:=}
+        \PY{n}{leadsToOptWithoutJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{allSol}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{,} \PY{n}{solution}\PY{p}{)}\PY{p}{;}
+      \PY{k}{assert} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+
+    \PY{p}{\PYZcb{}}
+    \PY{k}{else}
+    \PY{p}{\PYZob{}}
+
+      \PY{n}{solution}\PY{p}{,} \PY{n}{dp} \PY{o}{:=} 
+        \PY{n}{leadsToOptWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{allSol}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{,} \PY{n}{partialSolWithI}\PY{p}{)}\PY{p}{;}
+      \PY{k}{assert} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+
+    \PY{p}{\PYZcb{}}
+    \PY{n}{allSol} \PY{o}{:=} \PY{n}{allSol} \PY{o}{+} \PY{p}{[}\PY{n}{solution}\PY{p}{]}\PY{p}{;} 
+    \PY{n}{i} \PY{o}{:=} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+
+  \PY{n}{sol} \PY{o}{:=} \PY{n}{solution}\PY{p}{;}
+  \PY{n}{profit} \PY{o}{:=} \PY{n}{dp}\PY{p}{[}\PY{o}{|}\PY{n}{dp}\PY{o}{|}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{;} 
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+Metoda care imi genereaza solutia partiala ce contine activitatea i, este \textbf{MaxProfitWithJobI}. In Dafny, metodele sunt subrutine care pot fi executate în timpul execuției și pot avea efecte secundare, cum ar fi modificarea obiectelor heap.\cite{DBLP:journals/jlap/BlazquezMS23}
+Aceasta metoda primeste ca parametri: 
+\begin{enumerate}
+    \item \textbf{jobs} : secventa de activitati (problema)
+    \item \textbf{i} : pozitia (din secventa de activitati primita ca data de intrare) pe care se afla activitatea cu care vrem sa formam o solutie partiala 
+    \item \textbf{dp} : secventa cu profiturile optime obtinute la pasii anteriori
+    \item \textbf{allSol}: secventa cu solutiile partiale optime obtinute la pasii anteriori
+\end{enumerate}
+Si returneaza:
+\begin{enumerate}
+    \item \textbf{maxProfit}: profitul pentru solutia partiala ce contine activitatea de pe pozitia i din secventa de activitati primita ca data de intrare
+    \item \textbf{optParSolWithI}: solutia partiala optima ce contine activitatea de pe pozitia i
+\end{enumerate}
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{method} \PY{n+nf}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{maxProfit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{,} \PY{n}{optParSolWithI}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{PositiveProfitsDP}\PY{p}{(}\PY{n}{dp}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{allSol}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+  \PY{k}{requires} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{optParSolWithI}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{maxProfit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{optParSolWithI}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{optParSolWithI}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{ensures} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} \PY{o}{\PYZam{}\PYZam{}} 
+    \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
+        \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+\PY{p}{\PYZob{}}
+
+  \PY{k+kd}{var} \PY{n}{max\PYZus{}profit} \PY{o}{:=} \PY{l+m+mi}{0}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{partialSolutionPrefix} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{p}{]}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{partialSolution} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{p}{]}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{j} \PY{o}{:=} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{length} \PY{o}{:=} \PY{l+m+mi}{0}\PY{p}{;}
+
+  \PY{k}{while} \PY{n}{j} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZgt{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{jobStart} 
+    \PY{k}{invariant} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{i}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZgt{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{jobStart} 
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{JobComparator}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZgt{}} \PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{.}\PY{n}{jobStart} 
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}
+  \PY{p}{\PYZob{}}
+    \PY{n}{j} \PY{o}{:=} \PY{n}{j} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+
+  \PY{k}{assert}  \PY{n}{j} \PY{o}{!=} \PY{o}{\PYZhy{}}\PY{l+m+mi}{1} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{err}{!}\PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}\PY{p}{;}
+
+  \PY{k}{if} \PY{n}{j} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0} 
+  \PY{p}{\PYZob{}}
+    \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{n}{partialSolution}\PY{p}{,} \PY{n}{length} \PY{o}{:=}
+     \PY{n}{OptParSolWhenNonOverlapJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{allSol}\PY{p}{,} \PY{n}{j}\PY{p}{)}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+  \PY{k}{else}
+  \PY{p}{\PYZob{}}
+    \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{n}{partialSolution}\PY{p}{,} \PY{n}{length} \PY{o}{:=}
+     \PY{n}{OptParSolWhenOverlapJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{dp}\PY{p}{)}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+  \PY{k}{assert} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSolution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{length}\PY{p}{)}\PY{p}{;}
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} 
+    \PY{o}{\PYZam{}\PYZam{}} \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+        \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)} \PY{p}{;}
+  \PY{n}{maxProfit} \PY{o}{:=} \PY{n}{max\PYZus{}profit}\PY{p}{;}
+  \PY{n}{optParSolWithI} \PY{o}{:=} \PY{n}{partialSolution}\PY{p}{;}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+
+\subsection{Detalii de implementare}
+
+Cum functioneaza algoritmul:
+\begin{enumerate}
+    \item \textbf{Date de intrare}: primim ca date de intrare variabila activitati care reprezinta o secventa de activitati caracterizate prin timp de inceput, timp de incheiere si profit,  distincte (difere prin cel putin un timp), sortate dupa timpul de incheiere
+    \item \textbf{Programare dinamica}: \\
+    La fiecare iteratie stocam solutiile optime ale subproblemelor si profiturile acestora.
+    \begin{itemize}
+        \item variabila solution, care reprezinta solutia partiala optima la fiecare pas, respectiv solutia optima finala 
+        \item variabila dp, care va contine profiturile optime obtinute la fiecare iteratie
+        \item  variabila allSol care va contine toate solutiile partiale optime obtinute la fiecare pas
+    \end{itemize} 
+    \item \textbf{Iteratii}: 
+    \begin{itemize}
+        \item \textbf{La prima iteratie} solution = [1], dp = activitati[1].profit, allSol = [[1]] 
+        \item \textbf{Selectăm activitatea de pe pozitia i}, unde i = 1... $|$activitati$|$ - 1, în ordinea în care au fost declarate în secvența de intrare
+        \item \textbf{Formăm soluția parțială ce conține activitatea de pe pozitia i}
+        \begin{itemize}
+            \item \textbf{profitul} pentru solutia partiala cu acitivitatea i are valoarea initiala \textbf{activitati[i].profit}
+            \item \textbf{cautam o activitate j}, unde 0 $<$$=$ j $<$ i, care nu se suprapune cu activitatea i, adica activitati[j].timpDeIncheiere $<$$=$activitati[i].timpDeInceput
+            \item \textbf{daca j $>$$=$ 0} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            allSol[j]+ 0...0 + 1, unde:
+            \begin{itemize}
+                \item allSol[j] contine solutia partiala optima cu activitatile de pana la pozitia j inclusiv
+                \item 0-urile reprezinta, \textbf{daca exista}, activitatile dintre j si i care se suprapun cu activitatea de pe pozitia i 
+                \item 1 - inseamna ca activitatea i este selectata
+            \end{itemize}
+            iar \textbf{profitul} pentru solutia partiala ce contine activitatea i este egal cu \textbf{dp[j] + activitati[i].profit}
+             \item \textbf{daca j $=$$=$ -1} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            0...0 + 1, unde: 
+            \begin{itemize}
+                \item 0-urile reprezinta, activitatile din fata activitatii i care se suprapun cu aceasta. 
+                \item 1-inseamna ca activitatea de pe pozitia i a fost selectata 
+            \end{itemize}
+            iar \textbf{profitul} ramane egal cu \textbf{activitati[i].profit}
+        \end{itemize}
+    \item \textbf{Comparam} profitul solutiei partiale ce contine activitatea de pe pozitia i cu profitul care s-ar obtine fara activitatea curenta (dp[i-1]) si \textbf{actualizam} valoarea variabilelor dp si solution
+    \begin{itemize}
+        \item daca dp[i-1] $>$= profitul solutiei partiale cu activitatea i, atunci dp[i] = dp[i-1] si solution = solution + [0]
+        \item daca dp[i-1] $<$ profitul solutiei partiale cu activitatea i, atunci dp[i] = profitul solutiei partiale cu activitatea i si solution = solutia partiala ce contine activitatea i  
+    \end{itemize}
+    \item \textbf{Actualizam valoarea variabila allSol} care retine solutiile partiale optime obtinute la fiecare iteratie, allSol = allSol + [solution] 
+    \end{itemize}
+    \item \textbf{Datele de iesire ale problemei} sunt  reprezentate de solutia optima \textbf{sol} si de profitul maxim, \textbf{profit} $=$ \textbf{dp[$|$activitati$|$ - 1]}  
+\end{enumerate}
+
+\subsection{Precondiții, postcondițiilor și invarianți}
+Metodele și funcțiile Dafny sunt adnotate cu precondiții, postcondiții,invarianți și afirmații (assert-uri), iar verificatorul generează condiții de verificare care sunt trimise unui rezolvator SMT care verifică
+dacă acestea sunt valide.\cite{DBLP:journals/jlap/BlazquezMS23}\\
+\textbf{Preconditiile} reprezintă conditii care trebuie sa fie indeplinite la intrarea intr-o metoda sau functie. \\\textbf{Postconditiile} reprezinta conditii care trebuie sa fie indeplinite la iesirea dintr-o metoda sau functie.
+\\\textbf{Invariantii}, la fel ca si preconditiile si postconditiile, reprezinta conditii care trebuie sa fie indeplinite la intrarea in bucla, in timpul buclei si la iesirea din aceasta. \\In cazul problemei de selectie a activitatilor preconditiile care trebuie indeplinite sunt urmatoarele:
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns}
+ \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+     \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+     \PY{k}{ensures} \PY{n}{isSolution}\PY{p}{(}\PY{n}{sol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+     \PY{k}{ensures} \PY{n}{isOptimalSolution}\PY{p}{(}\PY{n}{sol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+\end{Verbatim}
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+ \PY{k+kd}{predicate} \PY{n+nf}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{sortedByActEnd}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+   \PY{o}{\PYZam{}\PYZam{}} \PY{n}{distinctJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+Astfel, secvența de activități primită ca input trebuie să conțină doar activităti valide, distincte și sortate dupa timpul de încheiere (problema valida). 
+La final, când algoritmul se termină, soluția returnată trebuie să îndeplinească urmatoarele postcondiții: ca aceasta reprezinta o solutie si ca aceasta este optima. 
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{isSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+O solutie inseamna ca secventa returnata sa indeplineasca proprietatea de solutie partiala, dar cu lungimea egala cu cea a secventei de activitati primita ca data de intrare.
+
+La fiecare iterație a algoritmului, următoarele proprietati sunt invarianți:
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k}{while} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{n}{i}
+    \PY{k}{invariant} \PY{n}{i} \PY{o}{==} \PY{o}{|}\PY{n}{dp}\PY{o}{|}
+    \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{dp}\PY{o}{|}
+    \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+    \PY{k}{invariant} \PY{n}{i} \PY{o}{==} \PY{o}{|}\PY{n}{allSol}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{o}{|}
+    \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{|}
+    \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0} \PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{n}{solution}
+    \PY{k}{invariant} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} 
+     \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
+      \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{i} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{dp}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
+    \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+\end{Verbatim}
+
+Un invariant foarte important este:
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+  \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSolution}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}} 
+  \PY{n}{HasLessProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+\end{Verbatim}
+deoarece cu ajutorul lui ne asigurăm că la fiecare pas variabila dp reține profitul optim. 
+
+La fel de importante sunt si:
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+\PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+\end{Verbatim}
+
+care ne asigura ca variabila solution retine la fiecare pas atat o solutie partiala, cat si o solutie partiala optima. 
+
+\section{Funcții importante folosite}
+Funcțiile reprezintă un element important pe care le-am folosit la verificarea corectitudinii algoritmului ales. 
+Funcțiile în Dafny sunt asemănătoare funcțiilor matematice, fiind constituite dintr-o singură instrucțiune al cărui tip de return este menționat în antetul acestora. Acestea sunt prezente doar
+la compilare și nu pot avea efecte secundare.\cite{DBLP:journals/jlap/BlazquezMS23}
+Una din funcțiile pe care am folosit-o cel mai des este funcția: \textit{PartialSolutionPrefixProfit(solution: seq$<$int$>$, jobs: seq$<$Job$>$, index: int): int} cu ajutorul căreia calculez profitul unei soluții parțiale, după formula \[ \sum_{i=0}^{|partialSol|} partialSol[i] * jobs[i]. \]
+
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k+kd}{function} \PY{n+nf}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+    \PY{p}{:}\PY{k+kt}{int}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{index} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{decreases} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{n}{index}
+  \PY{k}{ensures} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{index}\PY{p}{)} \PY{o}{==} 
+    \PY{k}{if} \PY{n}{index} \PY{o}{==} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{k}{then} \PY{l+m+mi}{0} \PY{k}{else}
+        \PY{n}{solution}\PY{p}{[}\PY{n}{index}\PY{p}{]} \PY{o}{*} \PY{n}{jobs}\PY{p}{[}\PY{n}{index}\PY{p}{]}\PY{p}{.}\PY{n}{profit} \PY{o}{+} 
+            \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{index} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+\PY{p}{\PYZob{}}
+
+  \PY{k}{if} \PY{n}{index} \PY{o}{==} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{k}{then} \PY{l+m+mi}{0} \PY{k}{else} 
+    \PY{n}{solution}\PY{p}{[}\PY{n}{index}\PY{p}{]} \PY{o}{*} \PY{n}{jobs}\PY{p}{[}\PY{n}{index}\PY{p}{]}\PY{p}{.}\PY{n}{profit} \PY{o}{+}
+     \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{index} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+\subsection{Date de ieșire și predicate specifice }
+\begin{itemize}
+    \item \textbf{sol} de tipul {\textit{seq$<$int$>$}} : reprezintă soluția optimă finală pentru secvența de activități primita 
+    \item \textbf{profit} de tipul \textit{int} : reprezintă profitul maxim al soluției optime finale
+\end{itemize}
+
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k+kd}{predicate} \PY{n+nf}{isSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+
+\PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptimalSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{==} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+\PY{p}{\PYZob{}}
+  \PY{n}{isSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}}
+  \PY{k}{forall} \PY{n}{otherSol} \PY{p}{::} \PY{n}{isSolution}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
+   \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)} \PY{o}{\PYZgt{}=} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+Predicatul \textbf{isSolution(solution: seq$<$int$>$, jobs: seq $<$Job$>$)} este asemănător cu predicatul  \textbf{isPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)}, doar că după cum se poate observa din antetul acestuia, lipseste variabila length, deoarece acum lungimea soluției trebuie sa fie egală cu lungimea secvenței de activități primită ca data de intrare. Același lucru se aplică și pentru predicatul \textbf{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} care verifică:
+\begin{enumerate}
+    \item secvența primită să fie o soluție 
+    \item orice altă secvență care este o soluție să aibă un profit mai mic decât aceasta
+\end{enumerate}
+
+\subsection{Descrierea datelor de iesire}
+Variabila de ieșire, denumită "sol", este reprezentată printr-un vector caracteristic al secvenței de activități primita ca date de intrare. Acest vector conține doar valori de 0 și 1, unde 0 înseamnă că o activitate nu a fost selectată, în timp ce 1 indică faptul că activitatea respectivă a fost selectată.
+
+\section{Leme importante in demonstrarea corectitudinii}
+Unul din punctele complexe in dezvoltarea codului de verificare pentru problema de selectie a activitatilor a fost atunci când a trebuit să recurg la leme pentru a demonstra anumite proprietăți. Lemele reprezintă blocuri de instructiuni care au ca scop demonstrarea unor teoreme pe care Dafny nu reuseste sa le demonstreze de unul singur. [3]
+
+Lemma \textbf{OtherSolHasLessProfitThenMaxProfit2} am folosit-o pentru a demonstra ca orice alta \textbf{solutie partiala} care:
+\begin{enumerate}
+    \item \textbf{contine activitatea de pe pozitia i}
+    \item orice activitatea aflata pe oricare din pozitiile \textit{j + 1, ..., i - 1} \textbf{se suprapune cu activitatea i}, unde \textit{0 $<=$ j $<$ i}
+    \item activitatea de pe pozitia \textbf{j} \textbf{nu se suprapune} cu activitatea de pe pozitia \textbf{i} 
+\end{enumerate}
+are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care indeplineste aceleasi proprietati mentionate mai sus, doar ca pentru aceasta in plus \textbf{substructura formata din activitatile de pe pozitia 0 pana la pozitia j este optima}. 
+
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k+kd}{lemma} \PY{n+nf}{OtherSolHasLessProfThenMaxProfit2}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{j} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{max\PYZus{}profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{allSol} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{allSol}\PY{o}{|} \PY{o}{==} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==} \PY{n}{i} 
+  \PY{k}{requires} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{dp}\PY{p}{[}\PY{n}{j}\PY{p}{]} \PY{o}{+} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit} 
+  \PY{k}{requires} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}
+  \PY{k}{requires} \PY{err}{!}\PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}
+  \PY{k}{requires} \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;}
+  \PY{k}{requires} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+  \PY{k}{requires} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{partialSol}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{0}
+  \PY{k}{ensures} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+\PY{p}{\PYZob{}}
+
+  \PY{k+kd}{var} \PY{n}{k} \PY{p}{:} \PY{k+kt}{int} \PY{o}{:=} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{k}{assert} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{k}{assert} \PY{n}{j} \PY{o}{\PYZlt{}=} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i}\PY{p}{;}
+  \PY{c+c1}{//assert !exists k\PYZsq{} :: k \PYZlt{} k\PYZsq{} \PYZlt{} i;}
+
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{k}\PY{l+s+s1}{\PYZsq{} :: k \PYZlt{} k\PYZsq{}} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{partialSol}\PY{p}{[}\PY{n}{k}\PY{l+s+s1}{\PYZsq{}] == 0; }
+\PY{l+s+s1}{  assert PartialSolProfit(partialSol, jobs, i) == jobs[i].profit;}
+
+\PY{l+s+s1}{  ComputeProfitWhenOnly0BetweenJI(partialSol, jobs, i, j);}
+\PY{l+s+s1}{  assert PartialSolProfit(partialSol, jobs, j + 1) == jobs[i].profit;}
+
+\PY{l+s+s1}{  //presupunem contrariul}
+\PY{l+s+s1}{  if !HasLessProf(partialSol, jobs, max\PYZus{}profit, 0)}
+\PY{l+s+s1}{  \PYZob{}}
+\PY{l+s+s1}{    var profit\PYZsq{}} \PY{o}{:=} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{dp}\PY{p}{[}\PY{n}{j}\PY{p}{]} \PY{o}{+} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;}
+
+    \PY{k}{assert} \PY{n}{HasMoreProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+    \PY{k}{assert} \PY{err}{!}\PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+
+    \PY{k}{assert} \PY{n}{partialSol}\PY{p}{[}\PY{p}{..}\PY{n}{j}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{+} \PY{n}{partialSol}\PY{p}{[}\PY{n}{j}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{..}\PY{p}{]} \PY{o}{==} \PY{n}{partialSol}\PY{p}{;}
+    
+    \PY{n}{SplitSequenceProfitEquality}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+    \PY{n}{EqOfProfitFuncFromIndToEnd}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+    \PY{n}{EqOfProfFuncUntilIndex}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+    \PY{n}{EqOfProfitFuncFromIndToEnd}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+
+    \PY{k}{assert} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{[}\PY{p}{..}\PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)} \PY{o}{+}
+     \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{==}
+      \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{==} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;} \PY{c+c1}{//(2)}
+
+    \PY{k+kd}{var} \PY{n}{partialSol}\PY{l+s+s1}{\PYZsq{} :seq\PYZlt{}int\PYZgt{} := partialSol[..j + 1];}
+\PY{l+s+s1}{    assert isPartialSol(partialSol\PYZsq{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+    \PY{k+kd}{var} \PY{n}{profit} \PY{o}{:=} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{l+s+s1}{\PYZsq{}, jobs, 0); //(1)}
+
+\PY{l+s+s1}{    assert |partialSol\PYZsq{}}\PY{o}{|} \PY{o}{==} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{profit} \PY{o}{+} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit} \PY{o}{==} \PY{n}{profit}\PY{l+s+s1}{\PYZsq{}; }
+\PY{l+s+s1}{    assert profit + jobs[i].profit \PYZgt{} max\PYZus{}profit; }
+\PY{l+s+s1}{    assert profit \PYZgt{} max\PYZus{}profit \PYZhy{} jobs[i].profit;}
+\PY{l+s+s1}{    assert profit \PYZgt{} dp[j];}
+\PY{l+s+s1}{    HasMoreProfThanOptParSol(allSol[j], jobs, partialSol\PYZsq{}}\PY{p}{)}\PY{p}{;}
+    \PY{k}{assert} \PY{err}{!}\PY{n}{isOptParSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{j} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;} \PY{c+c1}{//contradictie}
+    \PY{c+c1}{//assume false;}
+    \PY{k}{assert} \PY{k+kc}{false}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+
+  \PY{k}{assert} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+Aceasta lema am folosit-o in cadrul metodei \textbf{OptParSolWhenNonOverlapJob} (linia 79) pe care o apelez in metoda \textbf{MaxProfitWithJobI}  pe ramura cu \textit{j $>=$ 0}, adica atunci cand gasim o activitate pe o pozitie j in fata activitatii de pe pozitia i, care nu se suprapune cu aceasta. 
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\PY{k+kd}{method}  \PY{n+nf}{OptParSolWhenNonOverlapJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{j} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+ \PY{k}{returns} \PY{p}{(}\PY{n}{maxProfit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{,} \PY{n}{partialSolution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{allSol}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==} \PY{n}{i}
+  \PY{k}{requires} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{requires} \PY{err}{!}\PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}\PY{p}{;}
+  \PY{k}{requires} \PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZlt{}=} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{jobStart}
+  \PY{k}{requires} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)} 
+  \PY{k}{requires} \PY{err}{!}\PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}\PY{p}{;}
+  \PY{k}{ensures} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSolution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSolution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{maxProfit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{k}{ensures} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} \PY{o}{\PYZam{}\PYZam{}}
+   \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
+   \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{k}{ensures} \PY{n}{length} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+\PY{p}{\PYZob{}}
+  \PY{k+kd}{var} \PY{n}{partialSolutionPrefix} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}} \PY{o}{:=} \PY{p}{[}\PY{p}{]}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{max\PYZus{}profit} \PY{p}{:} \PY{k+kt}{int} \PY{o}{:=} \PY{l+m+mi}{0} \PY{p}{;}
+  \PY{n}{length} \PY{o}{:=} \PY{l+m+mi}{0}\PY{p}{;}
+
+  \PY{n}{partialSolutionPrefix} \PY{o}{:=} \PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{;}
+  \PY{n}{length} \PY{o}{:=} \PY{n}{length} \PY{o}{+} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{o}{|}\PY{p}{;}
+
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{i} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{n}{length} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1} \PY{o}{==}\PY{o}{\PYZgt{}}
+   \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{partialSolutionPrefix}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{\PYZlt{}=} \PY{l+m+mi}{1}\PY{p}{;} 
+  \PY{k}{assert} \PY{n}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}\PY{p}{;}
+
+  \PY{n}{max\PYZus{}profit} \PY{o}{:=} \PY{n}{max\PYZus{}profit} \PY{o}{+} \PY{n}{dp}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{;}
+
+  \PY{k+kd}{var} \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{:=} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{o}{|}\PY{p}{;} 
+
+  \PY{k}{while} \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}
+    \PY{k}{decreases} \PY{n}{nr\PYZus{}of\PYZus{}zeros}
+    \PY{k}{invariant} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{o}{|} 
+    \PY{k}{decreases} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{n}{length}
+    \PY{k}{invariant} \PY{o}{|}\PY{n}{allSol}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{n}{length} \PY{o}{\PYZlt{}=} \PY{n}{i} 
+    \PY{k}{invariant} \PY{o}{|}\PY{n}{partialSolutionPrefix}\PY{o}{|} \PY{o}{==} \PY{n}{length}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{k} \PY{o}{\PYZlt{}=} \PY{n}{length} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1} \PY{o}{==}\PY{o}{\PYZgt{}}
+     \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{partialSolutionPrefix}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{\PYZlt{}=} \PY{l+m+mi}{1}
+    \PY{k}{invariant} \PY{n}{length} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}\PY{p}{;}
+    \PY{k}{invariant} \PY{n}{length} \PY{o}{==} \PY{n}{i} \PY{o}{\PYZhy{}} \PY{n}{nr\PYZus{}of\PYZus{}zeros}
+    \PY{k}{invariant} \PY{n}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
+    \PY{k}{invariant} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{partialSolutionPrefix}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} 
+        \PY{n}{partialSolutionPrefix}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{0}
+    \PY{k}{invariant} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{p}{\PYZob{}}
+    \PY{n}{AssociativityOfProfitFunc}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;} 
+    \PY{k}{assert} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+    \PY{n}{partialSolutionPrefix} \PY{o}{:=}  \PY{n}{partialSolutionPrefix} \PY{o}{+} \PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{length} \PY{o}{+} \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}\PY{p}{;}
+    \PY{n}{length} \PY{o}{:=} \PY{n}{length} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+    \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{:=} \PY{n}{nr\PYZus{}of\PYZus{}zeros} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+
+  \PY{k}{assert} \PY{n}{length} \PY{o}{==} \PY{n}{i}\PY{p}{;}
+  \PY{k}{assert} \PY{o}{|}\PY{n}{partialSolutionPrefix}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{p}{;}
+
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{partialSolutionPrefix}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{;}
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{overlappingJobs}\PY{p}{(}\PY{n}{jobs}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)}\PY{p}{;} 
+  \PY{k}{assert} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}\PY{p}{;}
+
+  \PY{k}{assert} \PY{n}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSolutionPrefix} \PY{o}{+} \PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}\PY{p}{;} 
+
+  \PY{n}{AssociativityOfProfitFunc}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;} 
+  \PY{n}{partialSolutionPrefix} \PY{o}{:=} \PY{n}{partialSolutionPrefix} \PY{o}{+} \PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{;}
+  \PY{n}{length} \PY{o}{:=} \PY{n}{length} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{;}
+  \PY{n}{max\PYZus{}profit} \PY{o}{:=} \PY{n}{max\PYZus{}profit} \PY{o}{+} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;}
+
+  \PY{k}{assert} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+  \PY{k}{assert} \PY{n}{max\PYZus{}profit} \PY{o}{==} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolutionPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+  \PY{k}{forall} \PY{n}{partialSol} \PY{o}{|} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} 
+    \PY{o}{\PYZam{}\PYZam{}} \PY{n}{partialSolutionWithJobI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{ensures} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{p}{\PYZob{}}
+   
+    \PY{n}{OnlY0WhenOverlapJobs}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{j}\PY{p}{)}\PY{p}{;} 
+    \PY{k}{assert} \PY{k}{forall} \PY{n}{k} \PY{p}{::} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{k} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{partialSol}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{;}
+    \PY{n}{ProfitLastElem}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}\PY{p}{;}
+    \PY{k}{assert} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==} \PY{n}{jobs}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{.}\PY{n}{profit}\PY{p}{;}
+    \PY{n}{OtherSolHasLessProfThenMaxProfit2}
+        \PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{j}\PY{p}{,} \PY{n}{max\PYZus{}profit}\PY{p}{,} \PY{n}{allSol}\PY{p}{,} \PY{n}{dp}\PY{p}{)}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+  \PY{n}{maxProfit} \PY{o}{:=} \PY{n}{max\PYZus{}profit}\PY{p}{;}
+  \PY{n}{partialSolution} \PY{o}{:=} \PY{n}{partialSolutionPrefix}\PY{p}{;}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+Pentru a demonstra aceasta lema am presupus ca ar exista o alta solutie partiala cu aceleasi proprietati care ar avea un profit mai mare decat solutia partiala optima obtinuta. Astfel, in urma calculelor, am gasit ca exista o alta solutie partiala de lungime j $+$ 1 al carui profit este mai mare decat cel al solutiei partiale optime de lungime j $+$ 1, ceea ce este imposibil, deoarece ar contrazice ipoteza de la care am plecat. In acest mod, am identificat si \textbf{proprietatea de substructura optima}, care se ascunde in aceasta lema. 
+
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k+kd}{lemma} \PY{n+nf}{HasMoreProfThanOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|} \PY{o}{==} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}
+  \PY{k}{requires} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|}\PY{p}{)}
+  \PY{k}{requires} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)} \PY{o}{\PYZgt{}}
+   \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{k}{ensures} \PY{err}{!}\PY{n}{isOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k+kd}{var} \PY{n}{other\PYZus{}profit} \PY{o}{:=} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+  \PY{k+kd}{var} \PY{n}{optParSolProfit} \PY{o}{:=} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+  \PY{k}{assert} \PY{k}{forall} \PY{n}{otherSol}\PY{p}{::} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|}\PY{p}{)} 
+   \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{optParSolProfit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
+  \PY{k}{assert} \PY{n}{other\PYZus{}profit} \PY{o}{\PYZgt{}} \PY{n}{optParSolProfit}\PY{p}{;}
+  \PY{k}{assert} \PY{err}{!}\PY{n}{isOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{optimalPartialSol}\PY{o}{|}\PY{p}{)}\PY{p}{;}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+În lema "HasMoreProfThanOptParSol" am confirmat că în cazul în care există o altă soluție parțială cu un profit mai mare decât cel al soluției optime, atunci soluția considerată optimă nu poate fi cu adevărat optimă.
+
+De asemenea, consider că și lemele pe care le-am demonstrat folosind inducția au fost la fel de complexe, precum "AssociativityOfProfitFunc".
+
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\PY{k+kd}{lemma} \PY{n+nf}{AssociativityOfProfitFunc}\PY{p}{(}\PY{n}{partialSolPrefix} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
+ \PY{n}{val}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
+  \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{index} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{partialSolPrefix}\PY{o}{|}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{val} \PY{o}{\PYZlt{}=} \PY{l+m+mi}{1}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{partialSolPrefix}\PY{o}{|} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} 
+  \PY{k}{decreases} \PY{o}{|}\PY{n}{partialSolPrefix}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{n}{index}
+  \PY{k}{ensures} \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolPrefix}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{index}\PY{p}{)} 
+    \PY{o}{+} \PY{n}{val} \PY{o}{*} \PY{n}{jobs}\PY{p}{[}\PY{o}{|}\PY{n}{partialSolPrefix}\PY{o}{|}\PY{p}{]}\PY{p}{.}\PY{n}{profit} \PY{o}{==}
+          \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSolPrefix} \PY{o}{+} \PY{p}{[}\PY{n}{val}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{index}\PY{p}{)}
+\PY{p}{\PYZob{}}
+  \PY{k}{if} \PY{o}{|}\PY{n}{partialSolPrefix}\PY{o}{|} \PY{o}{==} \PY{n}{index} \PY{p}{\PYZob{}}
+
+  \PY{p}{\PYZcb{}}
+  \PY{k}{else}
+  \PY{p}{\PYZob{}}
+    \PY{n}{AssociativityOfProfitFunc}\PY{p}{(}\PY{n}{partialSolPrefix} \PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{val}\PY{p}{,} \PY{n}{index} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+  \PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+In cadrul acestei leme se poate observa cum am demonstrat proprietatea de asociativitate a functiei  PartialSolutionPrefixProfit, care imi calculeaza profitul pentru o solutie partiala, astfel incat daca adaugam un element la capatul unei solutii partiale, valoarea profitului acesteia creste cu valoarea profitului activitatii adaugate. 
+
+\section{Mod de lucru}
+In timpul dezvoltarii codului, un aspect important a fost modul de lucru. Pasii pe care i-am urmat pentru a-mi usura munca au fost:
+\begin{enumerate}
+    \item instructiunea \textbf{assume false} pentru a prespune anumite bucati de cod a fi false (Dafny nu mai incerca demonstrarea lor), incat sa evit situatiile in care metodele deveneau fragile (duc la timeout) si nu mai puteam identifica la care linie este o eroare
+    \item utilizarea \textbf{assert-urilor} pentru a vedea exact de la ce linie o proprietatea nu mai este indeplinita sau daca am reusit sa demonstrez o anumita proprietate
+\end{enumerate}
+\subsection{Timeout}
+De-a lungul procesului de dezvoltare a codului, au existat situații în care anumite metode si leme au cauzat depășirea timpului de așteptare (timeout). Acest lucru se intampla atunci cand acestea contin prea multe instructiuni care trebuie demonstrate, avand un grad de complexitate crescut.
+Pentru a evita timeout-urile, solutia a constat in refactorizarea metodelor si lemelor care aveau aceasta problema, extragand partile de cod critice pe care le-am demonstrat separat intr-o alta lema. Prin această abordare, nu doar că am reușit să reduc timpul de demonstrare, dar am reusit și să îmbunătățesc claritatea și modularitatea codului meu, făcându-l mai ușor de întreținut și de înțeles în viitor.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
