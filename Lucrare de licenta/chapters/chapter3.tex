@@ -24,8 +24,7 @@
 \lstset{style=mystyle}
 \chapter{Verificarea problemei de selecție a activităților in Dafny}
 
-\section{Reprezentarea datelor de intrare si a celor de ieșire}
-\subsection{Date de intrare și predicate specifice }
+\section{Date de intrare și predicate specifice }
 
 Pentru a reprezenta o activitate am folosit un tuplu. 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
@@ -89,7 +88,7 @@ Aceste 3 predicate le-am unit intr-unul singur, \textbf{validProblem}.
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-\subsection{Variabile folosite pentru rezolvare}
+\section{Variabile folosite pentru rezolvare}
 \begin{itemize}
     \item \textbf{solution} de tipul \textit{seq$<$int$>$} : reprezintă soluția parțială optima obtinuta la fiecare iteratie
     \item \textbf{partialSol} de tipul \textit{seq$<$int$>$} : reprezintă o soluție parțială
@@ -332,7 +331,7 @@ Si returneaza:
 
 
 
-\subsection{Detalii de implementare}
+\section{Detalii de implementare}
 
 Cum functioneaza algoritmul:
 \begin{enumerate}
@@ -450,7 +449,7 @@ La fel de importante sunt si:
 
 care ne asigura ca variabila solution retine la fiecare pas atat o solutie partiala, cat si o solutie partiala optima. 
 
-\section{Funcții importante folosite}
+\subsection{Funcții importante folosite}
 Funcțiile reprezintă un element important pe care le-am folosit la verificarea corectitudinii algoritmului ales. 
 Funcțiile în Dafny sunt asemănătoare funcțiilor matematice, fiind constituite dintr-o singură instrucțiune al cărui tip de return este menționat în antetul acestora. Acestea sunt prezente doar
 la compilare și nu pot avea efecte secundare.\cite{DBLP:journals/jlap/BlazquezMS23}
@@ -473,7 +472,7 @@ Una din funcțiile pe care am folosit-o cel mai des este funcția: \textit{Parti
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-\subsection{Date de ieșire și predicate specifice }
+\section{Date de ieșire și predicate specifice }
 \begin{itemize}
     \item \textbf{sol} de tipul {\textit{seq$<$int$>$}} : reprezintă soluția optimă finală pentru secvența de activități primita 
     \item \textbf{profit} de tipul \textit{int} : reprezintă profitul maxim al soluției optime finale
