@@ -30,7 +30,7 @@ Pentru a reprezenta o activitate am folosit un tuplu.
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{datatype} \PY{n+nc}{Job} \PY{o}{=} \PY{n}{Tuple}\PY{p}{(}\PY{n}{jobStart}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{jobEnd}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{profit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
 \end{Verbatim}
-Problema de selectie a activitatilor are ca date de intrare un singur parametru:
+Problema de selectie a activităților are ca date de intrare un singur parametru:
 \begin{itemize}
     \item \textbf{jobs} de tipul \textbf{\textit{seq$<$Job$>$}} : reprezintă secvența de activități 
 \end{itemize}
@@ -46,7 +46,7 @@ Un predicat este o funcție care returnează o valoare booleana.\cite{DBLP:serie
   \PY{k}{forall} \PY{n}{job} \PY{p}{::} \PY{n}{job} \PY{o}{in} \PY{n}{jobs} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-Predicatul \textbf{validJobsSeq(jobs: seq$<$Job$>$)} asigură faptul ca secvența de activități primită ca data de intrare conține doar activitati valide, ceea ce înseamnă că timpul de început este anterior timpului de încheiere și că profitul asociat fiecărei activități este un număr pozitiv.
+Predicatul \textbf{validJobsSeq(jobs: seq$<$Job$>$)} asigură faptul că secvența de activități primită  ca dată de intrare conține doar activități valide, ceea ce înseamnă că timpul de început este anterior timpului de încheiere și că profitul asociat fiecărei activități este un număr pozitiv.
 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{predicate} \PY{n+nf}{JobComparator}\PY{p}{(}\PY{n}{job1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{job2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
@@ -61,7 +61,7 @@ Predicatul \textbf{validJobsSeq(jobs: seq$<$Job$>$)} asigură faptul ca secvenț
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-Predicatul \textbf{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că in secvența de activități primită activitatile sunt sortate din punct de vedere al timpului de încheiere. 
+Predicatul \textbf{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că in secvența de activități primită  activitățile sunt sortate din punct de vedere al timpului de încheiere. 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{predicate}  \PY{n+nf}{distinctJobs}\PY{p}{(}\PY{n}{j1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{j2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j1}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{j2}\PY{p}{)}
@@ -76,7 +76,7 @@ Predicatul \textbf{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că in secvența
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-Pentru a ne asigura că secvența de activități primită ca input nu conține activități identice am folosit predicatul \textbf{distinctJobsSeq(s: seq$<$Job$>$)}. 
+Pentru a ne asigura că secvența de activități primită  ca input nu conține activități identice am folosit predicatul \textbf{distinctJobsSeq(s: seq$<$Job$>$)}. 
 
 Aceste 3 predicate le-am unit intr-unul singur, \textbf{validProblem}.
 
@@ -90,7 +90,7 @@ Aceste 3 predicate le-am unit intr-unul singur, \textbf{validProblem}.
 
 \section{Variabile folosite pentru rezolvare}
 \begin{itemize}
-    \item \textbf{solution} de tipul \textit{seq$<$int$>$} : reprezintă soluția parțială optima obtinuta la fiecare iteratie
+    \item \textbf{solution} de tipul \textit{seq$<$int$>$} : reprezintă soluția parțială optimă obtinuta la fiecare iteratie
     \item \textbf{partialSol} de tipul \textit{seq$<$int$>$} : reprezintă o soluție parțială
     \item \textbf{dp} de tipul \textit{seq$<$int$>$}:
     ce conține toate profiturile optime obținute la fiecare pas
@@ -261,18 +261,18 @@ Pentru a putea verifica dacă allSol conține doar soluții parțiale optime, am
 \end{Verbatim}
 
 
-Metoda care imi genereaza solutia partiala ce contine activitatea i, este \textbf{MaxProfitWithJobI}. In Dafny, metodele sunt subrutine care pot fi executate în timpul execuției și pot avea efecte secundare, cum ar fi modificarea obiectelor heap.\cite{DBLP:journals/jlap/BlazquezMS23}
-Aceasta metoda primeste ca parametri: 
+Metoda care îmi generează soluția parțială ce conține activitatea i, este \textbf{MaxProfitWithJobI}. In Dafny, metodele sunt subrutine care pot fi executate în timpul execuției și pot avea efecte secundare, cum ar fi modificarea obiectelor heap.\cite{DBLP:journals/jlap/BlazquezMS23}
+Această metodă primeste ca parametri: 
 \begin{enumerate}
-    \item \textbf{jobs} : secventa de activitati (problema)
-    \item \textbf{i} : pozitia (din secventa de activitati primita ca data de intrare) pe care se afla activitatea cu care vrem sa formam o solutie partiala 
-    \item \textbf{dp} : secventa cu profiturile optime obtinute la pasii anteriori
-    \item \textbf{allSol}: secventa cu solutiile partiale optime obtinute la pasii anteriori
+    \item \textbf{jobs} : secvența de activități (problema)
+    \item \textbf{i} : poziția (din secvența de activități primită ca dată de intrare) pe care se afla activitatea cu care vrem sa formam o solutie parțială 
+    \item \textbf{dp} : secvența cu profiturile optime obtinute la pasii anteriori
+    \item \textbf{allSol}: secvența cu solutiile partiale optime obtinute la pasii anteriori
 \end{enumerate}
 Si returneaza:
 \begin{enumerate}
-    \item \textbf{maxProfit}: profitul pentru solutia partiala ce contine activitatea de pe pozitia i din secventa de activitati primita ca data de intrare
-    \item \textbf{optParSolWithI}: solutia partiala optima ce contine activitatea de pe pozitia i
+    \item \textbf{maxProfit}: profitul pentru soluția parțială ce conține activitatea de pe poziția i din secvența de activități primită ca dată de intrare
+    \item \textbf{optParSolWithI}: soluția parțială optimă ce conține activitatea de pe poziția i
 \end{enumerate}
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{method} \PY{n+nf}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
@@ -335,53 +335,53 @@ Si returneaza:
 
 Cum functioneaza algoritmul:
 \begin{enumerate}
-    \item \textbf{Date de intrare}: primim ca date de intrare variabila activitati care reprezinta o secventa de activitati caracterizate prin timp de inceput, timp de incheiere si profit,  distincte (difere prin cel putin un timp), sortate dupa timpul de incheiere
+    \item \textbf{Date de intrare}: primim ca date de intrare variabila activități care reprezinta o secvență de activități caracterizate prin timp de inceput, timp de incheiere si profit,  distincte (difere prin cel putin un timp), sortate dupa timpul de incheiere
     \item \textbf{Programare dinamica}: \\
     La fiecare iteratie stocam solutiile optime ale subproblemelor si profiturile acestora.
     \begin{itemize}
-        \item variabila solution, care reprezinta solutia partiala optima la fiecare pas, respectiv solutia optima finala 
-        \item variabila dp, care va contine profiturile optime obtinute la fiecare iteratie
-        \item  variabila allSol care va contine toate solutiile partiale optime obtinute la fiecare pas
+        \item variabila solution, care reprezinta soluția parțială optimă la fiecare pas, respectiv soluția optimă finala 
+        \item variabila dp, care va conține profiturile optime obtinute la fiecare iteratie
+        \item  variabila allSol care va conține toate solutiile partiale optime obtinute la fiecare pas
     \end{itemize} 
     \item \textbf{Iteratii}: 
     \begin{itemize}
-        \item \textbf{La prima iteratie} solution = [1], dp = activitati[1].profit, allSol = [[1]] 
-        \item \textbf{Selectăm activitatea de pe pozitia i}, unde i = 1... $|$activitati$|$ - 1, în ordinea în care au fost declarate în secvența de intrare
-        \item \textbf{Formăm soluția parțială ce conține activitatea de pe pozitia i}
+        \item \textbf{La prima iteratie} solution = [1], dp = activități[1].profit, allSol = [[1]] 
+        \item \textbf{Selectăm activitatea de pe poziția i}, unde i = 1... $|$activități$|$ - 1, în ordinea în care au fost declarate în secvența de intrare
+        \item \textbf{Formăm soluția parțială ce conține activitatea de pe poziția i}
         \begin{itemize}
-            \item \textbf{profitul} pentru solutia partiala cu acitivitatea i are valoarea initiala \textbf{activitati[i].profit}
-            \item \textbf{cautam o activitate j}, unde 0 $<$$=$ j $<$ i, care nu se suprapune cu activitatea i, adica activitati[j].timpDeIncheiere $<$$=$activitati[i].timpDeInceput
-            \item \textbf{daca j $>$$=$ 0} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            \item \textbf{profitul} pentru soluția parțială cu acitivitatea i are valoarea initiala \textbf{activități[i].profit}
+            \item \textbf{cautam o activitate j}, unde 0 $<$$=$ j $<$ i, care nu se suprapune cu activitatea i, adica activități[j].timpDeIncheiere $<$$=$activități[i].timpDeInceput
+            \item \textbf{daca j $>$$=$ 0} atunci soluția parțială cu activitatea de pe poziția i va fi formata din 
             allSol[j]+ 0...0 + 1, unde:
             \begin{itemize}
-                \item allSol[j] contine solutia partiala optima cu activitatile de pana la pozitia j inclusiv
-                \item 0-urile reprezinta, \textbf{daca exista}, activitatile dintre j si i care se suprapun cu activitatea de pe pozitia i 
+                \item allSol[j] conține soluția parțială optimă cu activitățile de pana la poziția j inclusiv
+                \item 0-urile reprezinta, \textbf{daca exista}, activitățile dintre j si i care se suprapun cu activitatea de pe poziția i 
                 \item 1 - inseamna ca activitatea i este selectata
             \end{itemize}
-            iar \textbf{profitul} pentru solutia partiala ce contine activitatea i este egal cu \textbf{dp[j] + activitati[i].profit}
-             \item \textbf{daca j $=$$=$ -1} atunci solutia partiala cu activitatea de pe pozitia i va fi formata din 
+            iar \textbf{profitul} pentru soluția parțială ce conține activitatea i este egal cu \textbf{dp[j] + activități[i].profit}
+             \item \textbf{daca j $=$$=$ -1} atunci soluția parțială cu activitatea de pe poziția i va fi formata din 
             0...0 + 1, unde: 
             \begin{itemize}
-                \item 0-urile reprezinta, activitatile din fata activitatii i care se suprapun cu aceasta. 
-                \item 1-inseamna ca activitatea de pe pozitia i a fost selectata 
+                \item 0-urile reprezinta, activitățile din fata activității i care se suprapun cu aceasta. 
+                \item 1-inseamna ca activitatea de pe poziția i a fost selectata 
             \end{itemize}
-            iar \textbf{profitul} ramane egal cu \textbf{activitati[i].profit}
+            iar \textbf{profitul} ramane egal cu \textbf{activități[i].profit}
         \end{itemize}
-    \item \textbf{Comparam} profitul solutiei partiale ce contine activitatea de pe pozitia i cu profitul care s-ar obtine fara activitatea curenta (dp[i-1]) si \textbf{actualizam} valoarea variabilelor dp si solution
+    \item \textbf{Comparam} profitul solutiei partiale ce conține activitatea de pe poziția i cu profitul care s-ar obtine fara activitatea curenta (dp[i-1]) si \textbf{actualizam} valoarea variabilelor dp si solution
     \begin{itemize}
         \item daca dp[i-1] $>$= profitul solutiei partiale cu activitatea i, atunci dp[i] = dp[i-1] si solution = solution + [0]
-        \item daca dp[i-1] $<$ profitul solutiei partiale cu activitatea i, atunci dp[i] = profitul solutiei partiale cu activitatea i si solution = solutia partiala ce contine activitatea i  
+        \item daca dp[i-1] $<$ profitul solutiei partiale cu activitatea i, atunci dp[i] = profitul solutiei partiale cu activitatea i si solution = soluția parțială ce conține activitatea i  
     \end{itemize}
     \item \textbf{Actualizam valoarea variabila allSol} care retine solutiile partiale optime obtinute la fiecare iteratie, allSol = allSol + [solution] 
     \end{itemize}
-    \item \textbf{Datele de iesire ale problemei} sunt  reprezentate de solutia optima \textbf{sol} si de profitul maxim, \textbf{profit} $=$ \textbf{dp[$|$activitati$|$ - 1]}  
+    \item \textbf{Datele de ieșire ale problemei} sunt  reprezentate de soluția optimă \textbf{sol} si de profitul maxim, \textbf{profit} $=$ \textbf{dp[$|$activități$|$ - 1]}  
 \end{enumerate}
 
 \subsection{Precondiții, postcondițiilor și invarianți}
 Metodele și funcțiile Dafny sunt adnotate cu precondiții, postcondiții,invarianți și afirmații (assert-uri), iar verificatorul generează condiții de verificare care sunt trimise unui rezolvator SMT care verifică
 dacă acestea sunt valide.\cite{DBLP:journals/jlap/BlazquezMS23}\\
-\textbf{Preconditiile} reprezintă conditii care trebuie sa fie indeplinite la intrarea intr-o metoda sau functie. \\\textbf{Postconditiile} reprezinta conditii care trebuie sa fie indeplinite la iesirea dintr-o metoda sau functie.
-\\\textbf{Invariantii}, la fel ca si preconditiile si postconditiile, reprezinta conditii care trebuie sa fie indeplinite la intrarea in bucla, in timpul buclei si la iesirea din aceasta. \\In cazul problemei de selectie a activitatilor preconditiile care trebuie indeplinite sunt urmatoarele:
+\textbf{Precondițiile} reprezintă condiții care trebuie sa fie îndeplinite la intrarea intr-o metodă sau funcție. \\\textbf{Postcondițiile} reprezinta condiții care trebuie sa fie îndeplinite la ieșirea dintr-o metodă sau funcție.
+\\\textbf{Invariantii}, la fel ca si precondițiile si postcondițiile, reprezinta condiții care trebuie sa fie îndeplinite la intrarea in bucla, in timpul buclei si la ieșirea din aceasta. \\In cazul problemei de selectie a activităților precondițiile care trebuie îndeplinite sunt urmatoarele:
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns}
  \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
@@ -396,8 +396,8 @@ dacă acestea sunt valide.\cite{DBLP:journals/jlap/BlazquezMS23}\\
    \PY{o}{\PYZam{}\PYZam{}} \PY{n}{distinctJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-Astfel, secvența de activități primită ca input trebuie să conțină doar activităti valide, distincte și sortate dupa timpul de încheiere (problema valida). 
-La final, când algoritmul se termină, soluția returnată trebuie să îndeplinească urmatoarele postcondiții: ca aceasta reprezinta o solutie si ca aceasta este optima. 
+Astfel, secvența de activități primită  ca input trebuie să conțină doar activităti valide, distincte și sortate dupa timpul de încheiere (problemă valida). 
+La final, când algoritmul se termină, soluția returnată trebuie să îndeplinească urmatoarele postcondiții: ca aceasta reprezinta o solutie si ca aceasta este optimă. 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{predicate} \PY{n+nf}{isSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -405,9 +405,9 @@ La final, când algoritmul se termină, soluția returnată trebuie să îndepli
   \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-O solutie inseamna ca secventa returnata sa indeplineasca proprietatea de solutie partiala, dar cu lungimea egala cu cea a secventei de activitati primita ca data de intrare.
+O solutie inseamna ca secvența returnata sa indeplineasca proprietatea de solutie parțială, dar cu lungimea egala cu cea a secventei de activități primită ca dată de intrare.
 
-La fiecare iterație a algoritmului, următoarele proprietati sunt invarianți:
+La fiecare iterație a algoritmului, următoarele proprietăți sunt invarianți:
 \begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
 \PY{k}{while} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
     \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
@@ -447,7 +447,7 @@ La fel de importante sunt si:
 \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
 \end{Verbatim}
 
-care ne asigura ca variabila solution retine la fiecare pas atat o solutie partiala, cat si o solutie partiala optima. 
+care ne asigura ca variabila solution retine la fiecare pas atat o solutie parțială, cat si o solutie parțială optimă. 
 
 \subsection{Funcții importante folosite}
 Funcțiile reprezintă un element important pe care le-am folosit la verificarea corectitudinii algoritmului ales. 
@@ -474,7 +474,7 @@ Una din funcțiile pe care am folosit-o cel mai des este funcția: \textit{Parti
 
 \section{Date de ieșire și predicate specifice }
 \begin{itemize}
-    \item \textbf{sol} de tipul {\textit{seq$<$int$>$}} : reprezintă soluția optimă finală pentru secvența de activități primita 
+    \item \textbf{sol} de tipul {\textit{seq$<$int$>$}} : reprezintă soluția optimă finală pentru secvența de activități primită 
     \item \textbf{profit} de tipul \textit{int} : reprezintă profitul maxim al soluției optime finale
 \end{itemize}
 
@@ -497,25 +497,25 @@ Una din funcțiile pe care am folosit-o cel mai des este funcția: \textit{Parti
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-Predicatul \textbf{isSolution(solution: seq$<$int$>$, jobs: seq $<$Job$>$)} este asemănător cu predicatul  \textbf{isPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)}, doar că după cum se poate observa din antetul acestuia, lipseste variabila length, deoarece acum lungimea soluției trebuie sa fie egală cu lungimea secvenței de activități primită ca data de intrare. Același lucru se aplică și pentru predicatul \textbf{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} care verifică:
+Predicatul \textbf{isSolution(solution: seq$<$int$>$, jobs: seq $<$Job$>$)} este asemănător cu predicatul  \textbf{isPartialSolution(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)}, doar că după cum se poate observa din antetul acestuia, lipsește variabila length, deoarece acum lungimea soluției trebuie sa fie egală cu lungimea secvenței de activități primită  ca dată de intrare. Același lucru se aplică și pentru predicatul \textbf{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} care verifică:
 \begin{enumerate}
-    \item secvența primită să fie o soluție 
+    \item secvența primită  să fie o soluție 
     \item orice altă secvență care este o soluție să aibă un profit mai mic decât aceasta
 \end{enumerate}
 
-\subsection{Descrierea datelor de iesire}
-Variabila de ieșire, denumită "sol", este reprezentată printr-un vector caracteristic al secvenței de activități primita ca date de intrare. Acest vector conține doar valori de 0 și 1, unde 0 înseamnă că o activitate nu a fost selectată, în timp ce 1 indică faptul că activitatea respectivă a fost selectată.
+\subsection{Descrierea datelor de ieșire}
+Variabila de ieșire, denumită "sol", este reprezentată printr-un vector caracteristic al secvenței de activități primită ca date de intrare. Acest vector conține doar valori de 0 și 1, unde 0 înseamnă că o activitate nu a fost selectată, în timp ce 1 indică faptul că activitatea respectivă a fost selectată.
 
 \section{Leme importante in demonstrarea corectitudinii}
-Unul din punctele complexe in dezvoltarea codului de verificare pentru problema de selectie a activitatilor a fost atunci când a trebuit să recurg la leme pentru a demonstra anumite proprietăți. Lemele reprezintă blocuri de instructiuni care au ca scop demonstrarea unor teoreme pe care Dafny nu reuseste sa le demonstreze de unul singur. [3]
+Unul din punctele complexe in dezvoltarea codului de verificare pentru problema de selectie a activităților a fost atunci când a trebuit să recurg la leme pentru a demonstra anumite proprietăți. Lemele reprezintă blocuri de instrucțiuni care au ca scop demonstrarea unor teoreme pe care Dafny nu reuseste sa le demonstreze de unul singur. [3]
 
-Lemma \textbf{OtherSolHasLessProfitThenMaxProfit2} am folosit-o pentru a demonstra ca orice alta \textbf{solutie partiala} care:
+Lemma \textbf{OtherSolHasLessProfitThenMaxProfit2} am folosit-o pentru a demonstra că orice alta \textbf{solutie parțială} care:
 \begin{enumerate}
-    \item \textbf{contine activitatea de pe pozitia i}
+    \item \textbf{conține activitatea de pe poziția i}
     \item orice activitatea aflata pe oricare din pozitiile \textit{j + 1, ..., i - 1} \textbf{se suprapune cu activitatea i}, unde \textit{0 $<=$ j $<$ i}
-    \item activitatea de pe pozitia \textbf{j} \textbf{nu se suprapune} cu activitatea de pe pozitia \textbf{i} 
+    \item activitatea de pe poziția \textbf{j} \textbf{nu se suprapune} cu activitatea de pe poziția \textbf{i} 
 \end{enumerate}
-are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care indeplineste aceleasi proprietati mentionate mai sus, doar ca pentru aceasta in plus \textbf{substructura formata din activitatile de pe pozitia 0 pana la pozitia j este optima}. 
+are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care indeplineste aceleasi proprietăți mentionate mai sus, doar că pentru aceasta in plus \textbf{substructura formata din activitățile de pe poziția 0 pana la poziția j este optimă}. 
 
 \begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
 \PY{k+kd}{lemma} \PY{n+nf}{OtherSolHasLessProfThenMaxProfit2}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
@@ -590,7 +590,7 @@ are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care inde
 \end{Verbatim}
 
 
-Aceasta lema am folosit-o in cadrul metodei \textbf{OptParSolWhenNonOverlapJob} (linia 79) pe care o apelez in metoda \textbf{MaxProfitWithJobI}  pe ramura cu \textit{j $>=$ 0}, adica atunci cand gasim o activitate pe o pozitie j in fata activitatii de pe pozitia i, care nu se suprapune cu aceasta. 
+Această lema am folosit-o in cadrul metodei \textbf{OptParSolWhenNonOverlapJob} (linia 79) pe care o apelez in metoda \textbf{MaxProfitWithJobI}  pe ramura cu \textit{j $>=$ 0}, adica atunci când gasim o activitate pe o pozitie j in fata activității de pe poziția i, care nu se suprapune cu aceasta. 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
 \PY{k+kd}{method}  \PY{n+nf}{OptParSolWhenNonOverlapJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{j} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
@@ -685,7 +685,7 @@ Aceasta lema am folosit-o in cadrul metodei \textbf{OptParSolWhenNonOverlapJob} 
 \end{Verbatim}
 
 
-Pentru a demonstra aceasta lema am presupus ca ar exista o alta solutie partiala cu aceleasi proprietati care ar avea un profit mai mare decat solutia partiala optima obtinuta. Astfel, in urma calculelor, am gasit ca exista o alta solutie partiala de lungime j $+$ 1 al carui profit este mai mare decat cel al solutiei partiale optime de lungime j $+$ 1, ceea ce este imposibil, deoarece ar contrazice ipoteza de la care am plecat. In acest mod, am identificat si \textbf{proprietatea de substructura optima}, care se ascunde in aceasta lema. 
+Pentru a demonstra această lemă am presupus că ar exista o alta soluție parțiala cu aceleași proprietăți care ar avea un profit mai mare decat soluția parțială optimă obținută. Astfel, în urma calculelor, am gasit că există o alta soluție parțiala de lungime j $+$ 1 al carui profit este mai mare decat cel al soluției parțiale optime de lungime j $+$ 1, ceea ce este imposibil, deoarece ar contrazice ipoteza de la care am plecat. In acest mod, am identificat si \textbf{proprietatea de substructura optimă}, care se ascunde in această lemă. 
 
 \begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
 \PY{k+kd}{lemma} \PY{n+nf}{HasMoreProfThanOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
@@ -736,17 +736,17 @@ De asemenea, consider că și lemele pe care le-am demonstrat folosind inducția
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-In cadrul acestei leme se poate observa cum am demonstrat proprietatea de asociativitate a functiei  PartialSolutionPrefixProfit, care imi calculeaza profitul pentru o solutie partiala, astfel incat daca adaugam un element la capatul unei solutii partiale, valoarea profitului acesteia creste cu valoarea profitului activitatii adaugate. 
+In cadrul acestei leme se poate observa cum am demonstrat proprietatea de asociativitate a funcției  PartialSolutionPrefixProfit, care îmi calculează profitul pentru o soluție partială, astfel încât daca adăugam un element la capatul unei soluții parțiale, valoarea profitului acesteia crește cu valoarea profitului activității adăugate. 
 
 \section{Mod de lucru}
-In timpul dezvoltarii codului, un aspect important a fost modul de lucru. Pasii pe care i-am urmat pentru a-mi usura munca au fost:
+In timpul dezvoltării codului, un aspect important a fost modul de lucru. Pașii pe care i-am urmat pentru a-mi ușura munca au fost:
 \begin{enumerate}
-    \item instructiunea \textbf{assume false} pentru a prespune anumite bucati de cod a fi false (Dafny nu mai incerca demonstrarea lor), incat sa evit situatiile in care metodele deveneau fragile (duc la timeout) si nu mai puteam identifica la care linie este o eroare
-    \item utilizarea \textbf{assert-urilor} pentru a vedea exact de la ce linie o proprietatea nu mai este indeplinita sau daca am reusit sa demonstrez o anumita proprietate
+    \item instrucțiunea \textbf{assume false} pentru a prespune anumite bucati de cod a fi false (Dafny nu mai incercă demonstrarea lor), încât să evit situațiile in care metodele deveneau fragile (duc la timeout) si nu mai puteam identifica la care linie este o eroare
+    \item utilizarea \textbf{assert-urilor} pentru a vedea exact de la ce linie o proprietatea nu mai este îndeplinită sau daca am reusit să demonstrez o anumită proprietate
 \end{enumerate}
 \subsection{Timeout}
-De-a lungul procesului de dezvoltare a codului, au existat situații în care anumite metode si leme au cauzat depășirea timpului de așteptare (timeout). Acest lucru se intampla atunci cand acestea contin prea multe instructiuni care trebuie demonstrate, avand un grad de complexitate crescut.
-Pentru a evita timeout-urile, solutia a constat in refactorizarea metodelor si lemelor care aveau aceasta problema, extragand partile de cod critice pe care le-am demonstrat separat intr-o alta lema. Prin această abordare, nu doar că am reușit să reduc timpul de demonstrare, dar am reusit și să îmbunătățesc claritatea și modularitatea codului meu, făcându-l mai ușor de întreținut și de înțeles în viitor.
+De-a lungul procesului de dezvoltare a codului, au existat situații în care anumite metode si leme au cauzat depășirea timpului de așteptare (timeout). Acest lucru se întamplă atunci când acestea contin prea multe instrucțiuni care trebuie demonstrate, avand un grad de complexitate crescut.
+Pentru a evita timeout-urile, soluția a constat in refactorizarea metodelor si lemelor care aveau această problemă, extragand partile de cod critice pe care le-am demonstrat separat intr-o alta lemă. Prin această abordare, nu doar că am reușit să reduc timpul de demonstrare, dar am reusit și să îmbunătățesc claritatea și modularitatea codului meu, făcându-l mai ușor de întreținut și de înțeles în viitor.
 
 
 
