@@ -224,13 +224,11 @@ Pentru a putea verifica dacă allSol conține doar soluții parțiale optime, am
     \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
     \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
     \PY{k}{invariant} \PY{n}{HasProfit}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0} \PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
-    \PY{k}{invariant} \PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{n}{solution}
     \PY{k}{invariant} \PY{n}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{i}\PY{p}{)}
     \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{allSol}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
     \PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} 
      \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}}
       \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
-    \PY{k}{invariant} \PY{k}{forall} \PY{n}{i} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{dp}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{dp}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
     \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
   \PY{p}{\PYZob{}}
     \PY{k+kd}{var} \PY{n}{maxProfit}\PY{p}{,} \PY{n}{partialSolWithI} \PY{o}{:=} \PY{n}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{,} \PY{n}{dp}\PY{p}{,} \PY{n}{allSol}\PY{p}{)}\PY{p}{;}
