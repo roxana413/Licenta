@@ -49,18 +49,6 @@ predicate sortedByActEnd(s: seq<Job>)
 }
 
 
-function SolutionProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
-  requires |solution| == |jobs|
-  requires 0 <= index <= |solution|
-  requires 1 <= |jobs|
-  decreases |solution| - index
-  ensures SolutionProfit(solution, jobs, index ) == if index == |solution| then 0 else solution[index] * jobs[index].profit + SolutionProfit(solution, jobs, index + 1)
-{
-
-  if index == |solution| then 0 else solution[index] * jobs[index].profit + SolutionProfit(solution, jobs, index + 1)
-}
-
-
 function PartialSolProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
   requires 0 <= index <= |solution| <= |jobs|
   decreases |solution| - index
@@ -309,6 +297,7 @@ lemma HasMoreProfThanOptParSol(optimalPartialSol: seq<int>, jobs: seq<Job>, part
 
 //suntem in cazul in care cand formam solutia partiala cu job-ul i, gasim o solutie partiala optima cu care facem concatenare
 //demonstram ca pentru aceste date, j nu se suprapune cu i + solutie partiala ce-l contine pe i + concatenare cu allSol[j] partiala optima, aceasta este optima
+//allSol[j] + 0000+ i 
 lemma OtherSolHasLessProfThenMaxProfit2(partialSol: seq<int>, jobs : seq<Job>, i: int, j : int, max_profit : int, allSol : seq<seq<int>>, dp: seq<int>)
   requires validJobsSeq(jobs)
   requires 1 <= |jobs|
@@ -897,11 +886,9 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
     invariant isPartialSol(allSol[i-1], jobs, i)
     invariant HasProfit(solution, jobs, 0, dp[i - 1])
     invariant HasProfit(allSol[i - 1], jobs, 0 , dp[i - 1])
-    invariant allSol[i - 1] == solution
     invariant OptParSolutions(allSol, jobs, dp, i)
     invariant isOptParSol(allSol[i - 1], jobs, i)
     invariant forall partialSol :: |partialSol| == i  && isPartialSol(partialSol, jobs, i) ==> HasLessProf(partialSol, jobs, dp[i - 1], 0) //sol par optima
-    invariant forall i :: 0 <= i < |dp| ==> dp[i] >= 0
     invariant isOptParSol(solution, jobs, i)
   {
     var maxProfit, partialSolWithI := MaxProfitWithJobI(jobs, i, dp, allSol);
@@ -938,7 +925,6 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
 
 method Main()
 {
-  print("Roxana");
   var job1: Job := Tuple(jobStart := 1, jobEnd := 2, profit := 50);
   var job2: Job := Tuple(jobStart := 3, jobEnd := 5, profit := 20);
   var job3: Job := Tuple(jobStart := 6, jobEnd := 19, profit := 100);
