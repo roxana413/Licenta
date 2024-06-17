@@ -1,11 +1,211 @@
 \chapter*{Concluzii} 
 \addcontentsline{toc}{chapter}{Concluzii}
-În cadrul acestei lucrări de licență, am explorat și demonstrat corectitudinea algoritmului de selecție a activităților cu profit maxim, utilizând tehnica de proiectare cunoscută sub numele de programare dinamică. Prin intermediul limbajului imperativ Dafny, am reușit să implementez algoritmul și să verific formal corectitudinea acestuia.
+În cadrul acestei lucrări de licență, am explorat și demonstrat în Dafny corectitudinea algoritmului de selecție a activităților cu profit maxim, utilizând programare dinamică. Prin intermediul limbajului imperativ Dafny, am reușit să implementez algoritmul și să verific formal corectitudinea acestuia.
+ 
+Utilizarea Dafny a fost esențială pentru a garanta că implementarea respectă toate cerințele de corectitudine, prin verificarea automată a invarianților și a proprietăților specificate.
+Rezultatele obținute au confirmat faptul că algoritmul este corect din punct de vedere formal.
 
-Programarea dinamică s-a dovedit a fi o metodă eficientă pentru rezolvarea problemei de selecție a activităților cu profit maxim, permițându-mi să abordez problema într-un mod structurat și să optimizez soluția prin subprobleme suprapuse. Utilizarea Dafny a fost esențială pentru a garanta că implementarea respectă toate cerințele de corectitudine, prin verificarea automată a invarianților și a proprietăților specificate.
+\subsection{Statistici}
 
-Rezultatele obținute au confirmat faptul că algoritmul nu numai că este corect din punct de vedere formal, dar și eficient din punct de vedere al complexității timpului de execuție. Acest lucru demonstrează potențialul puternic al combinării programării dinamice cu verificarea formală folosind limbaje specializate precum Dafny în dezvoltarea algoritmilor corecți și eficienți.
+Iată timpii de verificare pentru metodele, lemele și predicatele folosite la verificarea algoritmului:
+\begin{Verbatim}[fontsize=\small]
+Verifying validProblem (well-formedness) ...
+[TRACE] Using prover: C:\Users\rmtimon\Licenta\dafny\z3\bin\z3-4.12.1.exe
+  [0.120 s, solver resource count: 77027, 2 proof obligations]  verified
+
+Verifying distinctJobsSeq (well-formedness) ...
+  [0.033 s, solver resource count: 75051, 6 proof obligations]  verified
+
+Verifying sortedByActEnd (well-formedness) ...
+  [0.038 s, solver resource count: 71202, 2 proof obligations]  verified
+
+Verifying PartialSolProfit (well-formedness) ...
+  [0.040 s, solver resource count: 76378, 20 proof obligations]  verified
+
+Verifying hasNoOverlappingJobs (well-formedness) ...
+  [0.045 s, solver resource count: 79486, 8 proof obligations]  verified
+
+Verifying areOrderedByEnd (well-formedness) ...
+  [0.039 s, solver resource count: 75000, 4 proof obligations]  verified
+
+Verifying AssociativityOfProfitFunc (well-formedness) ...
+  [0.042 s, solver resource count: 78116, 7 proof obligations]  verified
+
+Verifying AssociativityOfProfitFunc (correctness) ...
+  [0.052 s, solver resource count: 112534, 11 proof obligations]  verified
+
+Verifying isPartialSol (well-formedness) ...
+  [0.040 s, solver resource count: 78732, 3 proof obligations]  verified
+
+Verifying isOptParSol (well-formedness) ...
+  [0.048 s, solver resource count: 94986, 9 proof obligations]  verified
+
+Verifying HasProfit (well-formedness) ...
+  [0.042 s, solver resource count: 73376, 3 proof obligations]  verified
+
+Verifying isOptParSolDP (well-formedness) ...
+  [0.048 s, solver resource count: 98398, 10 proof obligations]  verified
+
+Verifying OptParSolutions (well-formedness) ...
+  [0.055 s, solver resource count: 104769, 7 proof obligations]  verified
+
+Verifying isSolution (well-formedness) ...
+  [0.040 s, solver resource count: 77954, 1 proof obligation]  verified
+
+Verifying isOptimalSolution (well-formedness) ...
+  [0.047 s, solver resource count: 92827, 8 proof obligations]  verified
+
+Verifying containsOnlyZeros (well-formedness) ...
+  [0.060 s, solver resource count: 57971, 1 proof obligation]  verified
+
+Verifying partialSolutionWithJobI (well-formedness) ...
+  [0.040 s, solver resource count: 80987, 2 proof obligations]  verified
+
+Verifying partialSolutionWithoutJobI (well-formedness) ...
+  [0.046 s, solver resource count: 80947, 2 proof obligations]  verified
+
+Verifying HasLessProf (well-formedness) ...
+  [0.038 s, solver resource count: 73652, 3 proof obligations]  verified
+
+Verifying HasMoreProfit (well-formedness) ...
+  [0.037 s, solver resource count: 73746, 3 proof obligations]  verified
+
+Verifying ProfitParSolStartFinishPos (well-formedness) ...
+  [0.037 s, solver resource count: 77662, 23 proof obligations]  verified
+
+Verifying EqOfProfitFuncFromIndToEnd (well-formedness) ...
+  [0.036 s, solver resource count: 72290, 7 proof obligations]  verified
+
+Verifying EqOfProfitFuncFromIndToEnd (correctness) ...
+  [0.037 s, solver resource count: 86388, 6 proof obligations]  verified
+
+Verifying EqOfProfFuncUntilIndex (well-formedness) ...
+  [0.036 s, solver resource count: 76256, 8 proof obligations]  verified
+
+Verifying EqOfProfFuncUntilIndex (correctness) ...
+  [0.049 s, solver resource count: 103619, 12 proof obligations]  verified
+
+Verifying SplitSequenceProfitEquality (well-formedness) ...
+  [0.037 s, solver resource count: 69268, 12 proof obligations]  verified
+
+Verifying SplitSequenceProfitEquality (correctness) ...
+  [0.432 s, solver resource count: 37099764, 1 proof obligation]  verified
+
+Verifying ProfitLastElem (well-formedness) ...
+  [0.039 s, solver resource count: 87032, 7 proof obligations]  verified
+
+Verifying ProfitLastElem (correctness) ...
+  [0.041 s, solver resource count: 91689, 1 proof obligation]  verified
+
+Verifying ComputeProfitWhenOnly0BetweenJI (well-formedness) ...
+  [0.042 s, solver resource count: 93993, 13 proof obligations]  verified
+
+Verifying ComputeProfitWhenOnly0BetweenJI (correctness) ...
+  [2.716 s, solver resource count: 44181805, 21 proof obligations]  verified
+
+Verifying HasMoreProfThanOptParSol (well-formedness) ...
+  [0.042 s, solver resource count: 99062, 17 proof obligations]  verified
+
+Verifying HasMoreProfThanOptParSol (correctness) ...
+  [0.044 s, solver resource count: 101476, 20 proof obligations]  verified
+
+Verifying OtherSolHasLessProfThenMaxProfit2 (well-formedness) ...
+  [0.060 s, solver resource count: 142638, 38 proof obligations]  verified
+
+Verifying OtherSolHasLessProfThenMaxProfit2 (correctness) ...
+  [0.191 s, solver resource count: 648961, 124 proof obligations]  verified
+
+Verifying OnlY0WhenOverlapJobs (well-formedness) ...
+  [0.043 s, solver resource count: 96360, 18 proof obligations]  verified
+
+Verifying OnlY0WhenOverlapJobs (correctness) ...
+  [0.046 s, solver resource count: 103851, 28 proof obligations]  verified
+
+Verifying OptParSolWhenNonOverlapJob (well-formedness) ...
+  [0.073 s, solver resource count: 146500, 39 proof obligations]  verified
+
+Verifying OptParSolWhenNonOverlapJob (correctness) ...
+  [0.338 s, solver resource count: 1166487, 161 proof obligations]  verified
+
+Verifying OtherSolHasLessProfThenMaxProfit (well-formedness) ...
+  [0.049 s, solver resource count: 96651, 14 proof obligations]  verified
+
+Verifying OtherSolHasLessProfThenMaxProfit (correctness) ...
+  [0.070 s, solver resource count: 150888, 64 proof obligations]  verified
+
+Verifying OptParSolWhenOverlapJob (well-formedness) ...
+  [0.055 s, solver resource count: 120392, 20 proof obligations]  verified
+
+Verifying OptParSolWhenOverlapJob (correctness) ...
+  [0.387 s, solver resource count: 1989058, 106 proof obligations]  verified
+
+Verifying MaxProfitWithJobI (well-formedness) ...
+  [0.060 s, solver resource count: 125572, 19 proof obligations]  verified
+
+Verifying MaxProfitWithJobI (correctness) ...
+  [0.111 s, solver resource count: 365625, 85 proof obligations]  verified
+
+Verifying NotAddingAJobKeepsSameProfit (well-formedness) ...
+  [0.037 s, solver resource count: 77097, 6 proof obligations]  verified
+
+Verifying NotAddingAJobKeepsSameProfit (correctness) ...
+  [0.054 s, solver resource count: 105680, 14 proof obligations]  verified
+
+Verifying SubSeqOfPartialIsAlsoPartial (well-formedness) ...
+  [0.044 s, solver resource count: 81285, 3 proof obligations]  verified
+
+Verifying SubSeqOfPartialIsAlsoPartial (correctness) ...
+  [0.061 s, solver resource count: 89125, 2 proof obligations]  verified
+
+Verifying optimalPartialSolutionWithJobI (well-formedness) ...
+  [0.068 s, solver resource count: 102075, 19 proof obligations]  verified
+
+Verifying optimalPartialSolutionWithJobI (correctness) ...
+  [0.207 s, solver resource count: 444987, 60 proof obligations]  verified
+
+Verifying leadsToOptWithJobI (well-formedness) ...
+  [0.087 s, solver resource count: 148000, 39 proof obligations]  verified
+
+Verifying leadsToOptWithJobI (correctness) ...
+  [0.068 s, solver resource count: 148994, 43 proof obligations]  verified
+
+Verifying optimalPartialSolutionWithoutJobI (well-formedness) ...
+  [0.056 s, solver resource count: 103267, 22 proof obligations]  verified
+
+Verifying optimalPartialSolutionWithoutJobI (correctness) ...
+  [0.120 s, solver resource count: 367647, 81 proof obligations]  verified
+
+Verifying leadsToOptWithoutJobI (well-formedness) ...
+  [0.071 s, solver resource count: 146725, 42 proof obligations]  verified
+
+Verifying leadsToOptWithoutJobI (correctness) ...
+  [0.099 s, solver resource count: 233660, 60 proof obligations]  verified
+
+Verifying WeightedJobScheduling (well-formedness) ...
+  [0.060 s, solver resource count: 105619, 4 proof obligations]  verified
+
+Verifying WeightedJobScheduling (correctness) ...
+  [0.284 s, solver resource count: 743447, 181 proof obligations]  verified
+
+Verifying Main (correctness) ...
+  [0.088 s, solver resource count: 181438, 4 proof obligations]  verified
+\end{Verbatim}
+
+Putem observa că timpul de verificare este foarte bun, valoarea cea mai mare  fiind 2 secunde în cazul unei leme. 
+
+Iată numărul de funcții, metode, leme și predicate folosite la verificarea algoritmului pentru problema de selecție a activităților:
+\begin{itemize}
+    \item am folosit 7 metode
+    \item am folosit 22 de predicate
+    \item am folosit 2 functii
+    \item am folosit 14 leme
+\end{itemize}
+
+Procesul de dezvoltare a codului a durat aproximativ 7 luni, unde prima lună a fost dedicată introducerii în limbajul de programare Dafny. 
+Pe parcurs am învățat foarte multe lucruri noi: începând cu structuri de date din Dafny, ce sunt invarianții, care sunt limitele pentru invarianți, ce sunt metodele, funțiile și predicatele și continuând până la cum să evit construirea unor metode fragile, cum să folosesc assert-urile și assume-urile încât să-mi dau seama ce nu reusește Dafny să demonstreze. Lemele au fost la început partea puțin mai dificilă, deoarece nu reușeam să le generalizez.
+
+Dacă ar fi ceva de îmbunătațit la Dafny, eu consider că ar fi de mare folos să ofere sugestii, exemple în cazurile în care ceva lipșeste sau nu este bine.   
 
 Pe baza acestei lucrări, consider că există oportunități semnificative pentru cercetări viitoare, cum ar fi extinderea tehnicii pentru probleme mai complexe sau adaptarea algoritmului pentru a lucra într-un context paralel sau distribuit. De asemenea, integrarea unor alte limbaje și instrumente de verificare formală ar putea oferi perspective noi și valoroase.
 
-În concluzie, am demonstrat că algoritmul de selecție a activităților poate fi implementat corect și eficient folosind programarea dinamică și verificarea formală în Dafny, contribuind astfel la îmbunătățirea metodelor și tehnologiilor utilizate în dezvoltarea de algoritmi siguri și fiabili.
+În concluzie, am demonstrat că algoritmul de selecție a activităților poate fi implementat corect folosind programarea dinamică și verificarea formală în Dafny, contribuind astfel la îmbunătățirea metodelor și tehnologiilor utilizate în dezvoltarea de algoritmi siguri și fiabili.

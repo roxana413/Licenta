@@ -1,7 +1,20 @@
 \chapter{Dafny}
 \section{Prezentare generală}
 
-Dafny este un limbaj imperativ de nivel înalt cu suport pentru programarea orientată pe obiecte. Metodele realizate în Dafny
-au precondiții, postcondiții și invarianți care sunt verificate la compilare, bazându-se pe soluționatorul SMT Z3. În cazul în care o postcondiție nu poate fi stabilită (fie din cauza unui timeout, fie din cauza faptului că aceasta nu este valabilă), compilarea eșuează. Prin urmare, putem avea un grad ridicat de încredere într-un program verificat cu ajutorul sistemului Dafny.
-Acesta a fost conceput pentru a facilita scrierea unui cod corect, în sensul de a nu avea erori de execuție, dar și corect în sensul de a face ceea ce programatorul a intenționat să facă.\cite{DBLP:journals/corr/abs-1909-01743}
-Dafny, ca platforma de verificare,  permite programatorului să specifice comportamentul dorit al programelor sale, astfel încât acesta să verifice dacă implementarea efectivă este conformă cu acel comportament. Cu toate acestea, acest proces nu este complet automat iar uneori programatorul trebuie să ghideze verificatorul.\cite{DBLP:journals/jlap/BlazquezMS23}
+Dafny este un limbaj imperativ de nivel înalt cu suport pentru programarea orientată pe obiecte. Subprogramele în Dafny se numesc metode.  Metodele implementate în Dafny
+pot avea precondiții, postcondiții și invarianți care sunt verificate la compilare, bazându-se pe solverul SMT Z3. În cazul în care o postcondiție nu poate fi demonstrată (fie din cauza unui timeout, fie din cauza faptului că aceasta nu este validă), compilarea eșuează. Prin urmare, putem avea un grad ridicat de încredere într-un program verificat cu ajutorul sistemului Dafny.
+Acesta a fost conceput pentru a facilita scrierea de programe fară erori de execuție și corecte în sensul că respectă specificația.\\
+Dafny \cite{DBLP:journals/corr/abs-1909-01743}, ca platformă de verificare,  permite programatorului să specifice comportamentul dorit al programelor sale, astfel încât acesta să verifice dacă implementarea efectivă este conformă cu acel comportament. Cu toate acestea, acest proces nu este complet automat iar uneori programatorul trebuie să ghideze verificatorul \cite{DBLP:journals/jlap/BlazquezMS23}.\\
+
+Exemplu de cod Dafny:
+\begin{small}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k+kd}{method} \PY{n+nf}{MultipleReturns}\PY{p}{(}\PY{n}{x}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{y}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{more}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{less}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+  \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}} \PY{n}{y}
+  \PY{k}{ensures} \PY{n}{less} \PY{o}{\PYZlt{}} \PY{n}{x} \PY{o}{\PYZlt{}} \PY{n}{more}
+\PY{p}{\PYZob{}}
+  \PY{n}{more} \PY{o}{:=} \PY{n}{x} \PY{o}{+} \PY{n}{y}\PY{p}{;}
+  \PY{n}{less} \PY{o}{:=} \PY{n}{x} \PY{o}{\PYZhy{}} \PY{n}{y}\PY{p}{;}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}
+\end{small}
