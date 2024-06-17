@@ -27,7 +27,7 @@
 \section{Reprezentarea datelor de intrare și predicate specifice }
 
 Pentru a defini o activitate am folosit un tuplu, reprezentat în Dafny prin următorul tip algebric de date 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{datatype} \PY{n+nc}{Job} \PY{o}{=} \PY{n}{Tuple}\PY{p}{(}\PY{n}{jobStart}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{jobEnd}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{profit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
 \end{Verbatim}
 unde:
@@ -49,32 +49,32 @@ Un \textbf{predicat} este o funcție care returnează o valoare booleana \cite{D
     \item Predicatul \texttt{validJob(jobs: Job)} verifică dacă numerele din tuplu pot reprezenta timpul de început, timpul de final și profitul unei activități. 
 Am ales ca timpul de început să fie strict mai mic decât timpul de încheiere, deoarece nu permitem activități de dimensiune 0. 
 Profitul am ales sa fie pozitiv, deoarece activitățile cu un profit negativ ar aduce un profit mai mic. 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{n}{job}\PY{p}{.}\PY{n}{jobStart} \PY{o}{\PYZlt{}} \PY{n}{job}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{job}\PY{p}{.}\PY{n}{profit} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
 \PY{p}{\PYZcb{}} \end{Verbatim} 
-    \item Predicatul \texttt{validJobsSeq(jobs: seq<Job>)} verifică proprietatea de \texttt{validJob} pentru toată secvența de activități primită ca date de intrare. \begin{Verbatim}[commandchars=\\\{\}]
+    \item Predicatul \texttt{validJobsSeq(jobs: seq<Job>)} verifică proprietatea de \texttt{validJob} pentru toată secvența de activități primită ca date de intrare. \begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{k}{forall} \PY{n}{job} \PY{p}{::} \PY{n}{job} \PY{o}{in} \PY{n}{jobs} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim} 
-    \item Predicatul \texttt{JobComparator (job1: Job, job2: Job)} compară două activități după timpul de încheiere.\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \item Predicatul \texttt{JobComparator (job1: Job, job2: Job)} compară două activități după timpul de încheiere.\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{JobComparator}\PY{p}{(}\PY{n}{job1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{job2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{n}{job1}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZlt{}=} \PY{n}{job2}\PY{p}{.}\PY{n}{jobEnd}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 
-    \item Predicatul \texttt{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că secvența de activități conține activități sortate după timpul de încheiere. Acest lucru este important pentru a putea împărți problema în subprobleme.   \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \item Predicatul \texttt{sortedByActEnd(s: seq$<$Job$>$)} ne asigură că secvența de activități conține activități sortate după timpul de încheiere. Acest lucru este important pentru a putea împărți problema în subprobleme.   \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{sortedByActEnd}\PY{p}{(}\PY{n}{s}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{k}{forall} \PY{n}{i}\PY{p}{,} \PY{n}{j} \PY{p}{::} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{s}\PY{o}{|} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{JobComparator}\PY{p}{(}\PY{n}{s}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{,} \PY{n}{s}\PY{p}{[}\PY{n}{j}\PY{p}{]}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-    \item Predicatul \texttt{distinctJobs(j1: Job, j2: Job)} compară două activități și asigură că ele diferă prin cel puțin un timp. Nu comparăm profitul deoarece permitem activități cu același profit.  \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \item Predicatul \texttt{distinctJobs(j1: Job, j2: Job)} compară două activități și asigură că ele diferă prin cel puțin un timp. Nu comparăm profitul deoarece permitem activități cu același profit.  \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate}  \PY{n+nf}{distinctJobs}\PY{p}{(}\PY{n}{j1}\PY{p}{:} \PY{n}{Job}\PY{p}{,} \PY{n}{j2}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j1}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{j2}\PY{p}{)}
 \PY{p}{\PYZob{}}
@@ -82,7 +82,7 @@ Profitul am ales sa fie pozitiv, deoarece activitățile cu un profit negativ ar
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
     \item Predicatul \texttt{distinctJobsSeq(s: seq$<$Job$>$)} verifică proprietatea de \\
-    \texttt{distinctJobs} pentru toată secveța de activități. \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \texttt{distinctJobs} pentru toată secveța de activități. \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
     \PY{k+kd}{predicate} \PY{n+nf}{distinctJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{s}\PY{p}{)}
 \PY{p}{\PYZob{}}
@@ -91,7 +91,7 @@ Profitul am ales sa fie pozitiv, deoarece activitățile cu un profit negativ ar
 \end{Verbatim}
 \item Predicatul \texttt{validProblem(jobs: seq<Job>)} este folosit pentru a defini ce înseamnă date de intrare valide. Pentru a defini predicatul \texttt{validProblem(jobs: seq<Job>)} am folosit predicatele \texttt{validJobsSeq(jobs: seq<Job>)}, \\\texttt{sortedByActEnd(s: seq$<$Job$>$)}, \texttt{distinctJobsSeq(s: seq$<$Job$>$)}. Am ales \texttt{1 <= |jobs|} pentru a nu permite date de intrare triviale. 
 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
     \PY{k+kd}{predicate} \PY{n+nf}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{sortedByActEnd}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -110,7 +110,7 @@ Predicatele pe care le-am folosit pentru validarea soluțiilor parțiale sunt:
 
 \begin{itemize}
     \item 
-    Predicatul \texttt{overlappingJobs(j1: Job, j2: Job)} verifică dacă activitățile se suprapun. Două activități se supraprun, dacă prima se termină înainte ca cealaltă să înceapă și invers. \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    Predicatul \texttt{overlappingJobs(j1: Job, j2: Job)} verifică dacă activitățile se suprapun. Două activități se supraprun, dacă prima se termină înainte ca cealaltă să înceapă și invers. \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{overlappingJobs}\PY{p}{(}\PY{n}{j1}\PY{p}{:}\PY{n}{Job}\PY{p}{,} \PY{n}{j2}\PY{p}{:}\PY{n}{Job}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j1}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJob}\PY{p}{(}\PY{n}{j2}\PY{p}{)}
@@ -120,7 +120,7 @@ Predicatele pe care le-am folosit pentru validarea soluțiilor parțiale sunt:
 \end{Verbatim}
     \item 
     Predicatul \texttt{hasNoOverlappingJobs(partialSol:seq<int>, \\jobs:seq<Job>)} verifică pentru o soluție parțială, să nu conțină activități care să se suprapuna.  
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{hasNoOverlappingJobs}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
     \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -132,7 +132,7 @@ Predicatele pe care le-am folosit pentru validarea soluțiilor parțiale sunt:
 \end{Verbatim}
     \item 
     Cu ajutorul predicatul \texttt{isPartialSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} am verificat proprietatea de soluție parțială: secvența să conțină doar valori de 0 și 1, activitățile care corespund acestui vector caracteristic să nu se suprapună și să aibă lungimea dorită. 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} 
 \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -151,7 +151,7 @@ Funcțiile în Dafny sunt asemănătoare funcțiilor matematice, fiind constitui
 la compilare și nu pot avea efecte secundare \cite{DBLP:journals/jlap/BlazquezMS23}.
 Una din funcțiile pe care am folosit-o cel mai des este funcția: \\\texttt{PartialSolutionPrefixProfit(solution: seq$<$int$>$, jobs: seq$<$Job$>$, index: int): int} cu ajutorul căreia calculez profitul unei soluții parțiale, după formula \[ \sum_{i=0}^{|partialSol|} partialSol[i] * jobs[i]. \]
 
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{function} \PY{n+nf}{PartialSolProfit}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
     \PY{p}{:}\PY{k+kt}{int}
   \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{index} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{solution}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
@@ -176,7 +176,7 @@ Pentru a valida soluțiile parțiale am folosit predicatele:
 
 \begin{itemize}
     \item Predicatul \texttt{HasLessProfit} verifică profitul unei secvențe să fie mai mic sau egal cu un \texttt{maxProfit}. 
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}  
  \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,}\PY{n}{position}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -185,8 +185,8 @@ Pentru a valida soluțiile parțiale am folosit predicatele:
   \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{position}\PY{p}{)} \PY{o}{\PYZlt{}=} \PY{n}{maxProfit}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-    \item Predicatul \textbf{isOptParSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} verifică dacă o soluție parțiala este și optimă. O soluție parțială este optimă dacă orice altă soluție parțială pentru aceeasi subproblemă are un profit mai mic sau egal decât profitul acesteia. Predicate \texttt{ghost} sunt folosite pentru specificare și verificare, dar nu au impact asupra execuției, fiind șterse la compilare. 
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \item Predicatul \texttt{isOptParSol} verifică dacă o soluție parțiala este și optimă. O soluție parțială este optimă dacă orice altă soluție parțială pentru aceeasi subproblemă are un profit mai mic sau egal decât profitul acesteia. Predicate \texttt{ghost} sunt folosite pentru specificare și verificare, dar nu au impact asupra execuției, fiind șterse la compilare. 
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptParSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -201,7 +201,7 @@ Pentru a valida soluțiile parțiale am folosit predicatele:
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
     \item Predicatul \texttt{isOptParSolDP} verifică o secvență să fie o soluție parțială optimă pentru o subproblemă și să aibă profitul optim.
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptParSolDP}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{length} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{profit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -213,13 +213,13 @@ Pentru a valida soluțiile parțiale am folosit predicatele:
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
     \item 
-    Predicatul \texttt{OptParSolutions(allSol: seq$<$seq$<$int$>$$>$, jobs: seq$<$Job$>$, dp:seq$<$int$>$, index: int)} verifică pentru o secvență de secvențe:
+    Predicatul \texttt{OptParSolutions} verifică pentru o secvență de secvențe:
 \begin{enumerate}
     \item fiecare secventă să corespundă subproblemei pe care o rezolvă
     \item fiecare secventă să fie o soluție parțială optimă
     \item fiecare secventă să aibă profitul optim
 \end{enumerate}
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{OptParSolutions}\PY{p}{(}\PY{n}{allSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{dp}\PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -245,7 +245,7 @@ Variabilele locale folosite pentru rezolvarea algoritmului pentru problema de se
 \end{itemize}
 
 Iată punctul de intrare în algoritm: 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -321,7 +321,7 @@ dacă acestea sunt valide \cite{DBLP:journals/jlap/BlazquezMS23}.
 \textbf{Invarianții} reprezintă condiții care trebuie să fie îndeplinite la intrarea in bucla, în timpul buclei și la ieșirea din aceasta. În cazul problemei de selectie a activităților avem o singură precondiție care trebuie sa fie îndeplinită,  precondiția \texttt{validProblem(jobs: seq<Job>)}. Secvența de activități primită trebuie să respecte următoarea precondiție: 
 \texttt{validProblem(jobs)}. Asta înseamnă să conțină doar activităti valide, distincte și sortate dupa timpul de încheiere. 
 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns}
  \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
      \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -329,7 +329,7 @@ dacă acestea sunt valide \cite{DBLP:journals/jlap/BlazquezMS23}.
      \PY{k}{ensures} \PY{n}{isOptimalSolution}\PY{p}{(}\PY{n}{sol}\PY{p}{,} \PY{n}{jobs}\PY{p}{)}
 \end{Verbatim}
 
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
  \PY{k+kd}{predicate} \PY{n+nf}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{sortedByActEnd}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -341,11 +341,11 @@ La final, când algoritmul se termină, soluția returnată trebuie să îndepli
 \begin{itemize}
     \item \texttt{isSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)}
     
-    \item \texttt{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$}
+    \item \texttt{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)}
 \end{itemize}despre care ofer mai multe detalii în capitolul \textbf{Date de ieșire și predicate specifice.}\\
 
 La fiecare iterație a algoritmului, următoarele proprietăți sunt invarianți:
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k}{while} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
     \PY{k}{invariant} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{n}{i} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
     \PY{k}{decreases} \PY{o}{|}\PY{n}{jobs}\PY{o}{|} \PY{o}{\PYZhy{}} \PY{n}{i}
@@ -371,7 +371,7 @@ La fiecare iterație a algoritmului, următoarele proprietăți sunt invarianți
 \end{Verbatim}
 
 Un invariant foarte important este:
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i}
   \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSolution}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}} 
   \PY{n}{HasLessProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
@@ -379,7 +379,7 @@ Un invariant foarte important este:
 deoarece cu ajutorul lui ne asigurăm că la fiecare pas variabila \texttt{dp} reține profitul optim. 
 
 La fel de importante sunt si:
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k}{invariant} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
 \PY{k}{invariant} \PY{n}{isOptParSol}\PY{p}{(}\PY{n}{solution}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)}
 \end{Verbatim}
@@ -400,7 +400,7 @@ Această metodă primeste ca parametri:
     \item \texttt{maxProfit}: profitul pentru soluția parțială optimă ce conține activitatea de pe poziția i din secvența de activități primită ca date de intrare;
     \item \texttt{optParSolWithI}: soluția parțială optimă ce conține activitatea de pe poziția i.
 \end{enumerate}
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{maxProfit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{,} \PY{n}{optParSolWithI}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -509,7 +509,7 @@ Algoritmul care rezolvă problema de selecție a activităților cu profit maxim
 Predicatele folosite la validarea datele de ieșire sunt:
 \begin{itemize}
     \item Predicatul \texttt{isSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} verifică dacă o secvență este soluție parțială și o soluție pentru secvența de activități primită ca date de intrare.
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{isSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
 \PY{p}{\PYZob{}}
@@ -518,8 +518,8 @@ Predicatele folosite la validarea datele de ieșire sunt:
 \end{Verbatim}
     \item Predicatul \texttt{isOptimalSolution(solution: seq$<$int$>$, jobs: seq$<$Job$>$)} care verifică dacă o secvență este o soluție optimă.\\
     O soluție este optimă dacă pentru aceeasi problemă, nu există o altă soluție care să aibă un profit mai bun.
-    \begin{small}
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{footnotesize}
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{ghost} \PY{k+kd}{predicate} \PY{n+nf}{isOptimalSolution}\PY{p}{(}\PY{n}{solution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
   \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
@@ -531,7 +531,7 @@ Predicatele folosite la validarea datele de ieșire sunt:
     \PY{n}{PartialSolProfit}\PY{p}{(}\PY{n}{otherSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-\end{small}
+\end{footnotesize}
 \end{itemize} 
 
 
@@ -548,7 +548,7 @@ Am folosit lema \texttt{OtherSolHasLessProfitThenMaxProfit2} pentru a demonstra 
 \end{enumerate}
 are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care îndeplinește aceleasi proprietăți mentionate mai sus, și pentru care \texttt{substructura [0..j] este optimă}. 
 
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{lemma} \PY{n+nf}{OtherSolHasLessProfThenMaxProfit2}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{j} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{max\PYZus{}profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{allSol} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -614,8 +614,8 @@ are un \textbf{profit mai mic sau egal} decat cel al solutiei partiale care înd
 \end{Verbatim}
 
 Am folosit această lemă în cadrul metodei \textbf{OptParSolWhenNonOverlapJob} pe care o apelez în metoda \textbf{MaxProfitWithJobI}  pe ramura cu \texttt{j $>=$ 0}, atunci când gasim o activitate pe o pozitie \texttt{j} , unde \texttt{j < i} în fața activității de pe poziția i, care nu se suprapune cu aceasta.
-\begin{small}
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{footnotesize}
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method}  \PY{n+nf}{OptParSolWhenNonOverlapJob}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{j} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
  \PY{k}{returns} \PY{p}{(}\PY{n}{maxProfit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{,} \PY{n}{partialSolution}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
@@ -707,14 +707,14 @@ Am folosit această lemă în cadrul metodei \textbf{OptParSolWhenNonOverlapJob}
   \PY{n}{partialSolution} \PY{o}{:=} \PY{n}{partialSolutionPrefix}\PY{p}{;}
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
-\end{small}
+\end{footnotesize}
 
 Pentru a demonstra această lemă am folosit metoda reducerii la absurd. Presupunând că ar exista o altă soluție parțiala cu aceleași proprietăți care ar avea un profit mai mare decât soluția parțială optimă obținută, am arătat că există o alta soluție parțiala de lungime \texttt{j $+$ 1} al carei profit este mai mare decat cel al soluției parțiale optime de lungime \texttt{j $+$ 1}, ceea ce este imposibil, deoarece ar contrazice ipoteza de la care am plecat. În acest mod, am identificat și \textbf{proprietatea de substructura optimă}, care se ascunde în această lemă. 
 
 În lema \texttt{HasMoreProfThanOptParSol} am confirmat că în cazul în care există o altă soluție parțială cu un profit mai mare decât cel al soluției optime, atunci soluția considerată optimă nu poate fi cu adevărat optimă.
 
 
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{lemma} \PY{n+nf}{HasMoreProfThanOptParSol}\PY{p}{(}\PY{n}{optimalPartialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -737,7 +737,7 @@ Pentru a demonstra această lemă am folosit metoda reducerii la absurd. Presupu
 
 De asemenea, consider că și lemele pe care le-am demonstrat prin inducția au fost la fel de complexe, precum \texttt{AssociativityOfProfitFunc}.
 
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{lemma} \PY{n+nf}{AssociativityOfProfitFunc}\PY{p}{(}\PY{n}{partialSolPrefix} \PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{val}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{index}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{l+m+mi}{1} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
@@ -767,7 +767,7 @@ De asemenea, consider că și lemele pe care le-am demonstrat prin inducția au 
 \begin{itemize}
     \item\texttt{leadsToOptWithoutJobI}. Metoda \texttt{leadsToOptWithoutJobI} returnează \\soluția parțială optimă în cazul în care soluția parțială optimă ce conține activitatea \texttt{i}
     are profitul mai mic sau egal decât \texttt{dp[i-1]}, profitul care s-ar obține fară adăugare activității \texttt{i}. Pe această ramură se consideră construirea soluției parțiale optime fară a alege activitatea de pe poziția \texttt{i}.
-    \begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{leadsToOptWithoutJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{dp}\PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} 
 \PY{n}{allSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,}
  \PY{n}{optParSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns}
@@ -813,7 +813,7 @@ De asemenea, consider că și lemele pe care le-am demonstrat prin inducția au 
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 Lema \texttt{optimalPartialSolutionWithoutJobI} demonstrează știind că soluția parțială optimă ce conține activitatea \texttt{i} aduce un profit mai mic decât dacă nu s-ar alege activitatea de pe poziția \texttt{i}, că fară activitatea de pe poziția \texttt{i} se obține o soluție parțială optimă pentru subproblema pe care o rezolvă.
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{lemma} \PY{n+nf}{optimalPartialSolutionWithoutJobI}\PY{p}{(}\PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{profits}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -865,7 +865,7 @@ Lema \texttt{optimalPartialSolutionWithoutJobI} demonstrează știind că soluț
     
     \item și \texttt{leadsToOptWithJobI}. Metoda \texttt{leadsToOptWithJobI} returnează soluția parțială optimă în cazul în care soluția parțială optimă ce conține activitatea i
     are profitul strict mai mare decat \texttt{dp[i-1]}, profitul care s-ar obține fară adăugare activității \texttt{i}. Pe această ramura soluția parțială optimă este cea care conține activitatea \texttt{i}.
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{leadsToOptWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{dp}\PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  {allSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{,}\PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} 
  \PY{n}{optParSolWithJobI}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)} 
@@ -907,7 +907,7 @@ Lema \texttt{optimalPartialSolutionWithoutJobI} demonstrează știind că soluț
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 În cadrul acestei metode am folosit o lemă importantă, \\\texttt{optimalPartialSolutionWithJobI}. Această lemă demonstrează că soluția parțială optimă ce conține activitatea \texttt{i} este soluție parțială obtimă pentru subproblema pe care o rezolvă.
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{lemma} \PY{n+nf}{optimalPartialSolutionWithJobI}\PY{p}{(}\PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -963,7 +963,7 @@ In timpul dezvoltării codului, un aspect important a fost modul de lucru. Pași
     \item utilizarea instrucțiunii \texttt{assume false} pentru a prespune că toate condițiile de verificare de după sunt adevărate (Dafny nu mai încearcă demonstrarea lor), încât să evit situațiile în care metodele deveneau fragile (duc la timeout) si nu mai puteam identifica la care linie este o eroare. 
     De cele mai multe ori, am folosit \texttt{assume false} în cazul if-urilor unde aveam două fire de execuție pentru a vedea exact pe care din cele două nu se respectă invarianții, deoarece de cele mai multe ori obțineam timeout și era dificil de identificat unde este problema. După ce pe o ramură obțineam un cod verificat, știam sigur că dacă problema încă este prezentă, trebuie să continui cu demonstrația pe cealaltă.
     De exemplu, în metoda principală a fost nevoie să presupun pe rând cele doua ramuri ale if-ului fiind adevarate, pentru a putea să lucrez pe fiecare în parte, încât să văd exact ce nu este bine și de ce.
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{WeightedJobScheduling}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{sol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{profit} \PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validProblem}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
@@ -999,7 +999,7 @@ In timpul dezvoltării codului, un aspect important a fost modul de lucru. Pași
 \end{Verbatim}
     \item utilizarea \texttt{assert-urilor} pentru a vedea exact de la ce linie o proprietatea nu mai este îndeplinită sau dacă am reusit să demonstrez o anumită proprietate. Assert-urile au fost instrucțiunile pe care le-am utilizat cel mai des pe parcursul dezvoltarii codului în Dafny. Acestea m-au ajutat să verific proprietățile care trebuiau îndeplinite. În cazul predicatele compuse, de cele mai multe ori foloseam assert pentru fiecare proprietate în parte, pentru a vedea care din ele nu este îndeplinită. 
     De exemplu, în cazul predicatului \texttt{isPartialSol}, de fiecare dată când faceam o modificare asupra unei soluții parțiale, verificam separat toate proprietățile sale. 
-    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+    \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
 \PY{p}{\PYZob{}}
@@ -1009,7 +1009,7 @@ In timpul dezvoltării codului, un aspect important a fost modul de lucru. Pași
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 În metoda \texttt{MaxProfitWithJobI} după ce am modificat variabila \texttt{partialSolution} am verificat dacă aceasta îndeplineste proprietatea de soluție parțială.
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{MaxProfitWithJobI}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq} \PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{dp}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,}
  \PY{n}{allSol} \PY{p}{:}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{o}{\PYZgt{}}\PY{p}{)}
  \PY{k}{returns} \PY{p}{(}\PY{n}{maxProfit}\PY{p}{:}\PY{k+kt}{int}\PY{p}{,} \PY{n}{optParSolWithI}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{)}
@@ -1053,7 +1053,7 @@ In timpul dezvoltării codului, un aspect important a fost modul de lucru. Pași
 
 Au fost și cazuri în care a trebuit să folosesc assert-uri deoarece Dafny nu reușea de unul singur să demonstreze proprietăți care pareau evidente. De exemplu assert-ul \texttt{assert partialSol == partialSol[..i] + [0]} din următoarea bucată de cod este necesar:
 \begin{tiny}
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k}{forall} \PY{n}{partialSol} \PY{o}{|} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1} \PY{o}{\PYZam{}\PYZam{}} 
  \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|}\PY{p}{)}
     \PY{k}{ensures} \PY{n}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{maxProfit}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}\PY{p}{;}
