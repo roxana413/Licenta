@@ -5,10 +5,6 @@ predicate validProblem(jobs: seq<Job>)
   1 <= |jobs| && validJobsSeq(jobs) && sortedByActEnd(jobs) && distinctJobsSeq(jobs)
 }
 
-predicate JobComparator(job1: Job, job2: Job)
-{
-  job1.jobEnd <= job2.jobEnd
-}
 predicate validJob(job: Job)
 {
   job.jobStart < job.jobEnd && job.profit >= 0
@@ -31,21 +27,28 @@ predicate distinctJobsSeq(s: seq<Job>)
   forall i, j :: 0 <= i < j < |s| ==> distinctJobs(s[i], s[j])
 }
 
-
-predicate overlappingJobs(j1:Job, j2:Job)
-  requires validJob(j1)
-  requires validJob(j2)
+predicate JobComparator(job1: Job, job2: Job)
 {
-  j1.jobEnd > j2.jobStart &&  j2.jobEnd > j1.jobStart //j1.jobEnd <= j2.jobStart || j2.jobEnd <= j1.jobStart
-  //primul job se termina inainte ca al 2-lea sa inceapa (j1, j2), si primul job incepe inainte ca al 2-lea sa se termine (j2, j1)
-  //ele fiind deja ordonate dupa timpul de finish
+  job1.jobEnd <= job2.jobEnd
 }
-
 
 predicate sortedByActEnd(s: seq<Job>)
   requires validJobsSeq(s)
 {
   forall i, j :: 0 <= i < j < |s| ==> JobComparator(s[i], s[j])
+}
+
+predicate overlappingJobs(j1:Job, j2:Job)
+  requires validJob(j1)
+  requires validJob(j2)
+{
+  j1.jobEnd > j2.jobStart &&  j2.jobEnd > j1.jobStart
+}
+
+predicate hasNoOverlappingJobs(partialSol: seq<int>, jobs: seq<Job>)
+  requires validJobsSeq(jobs)
+{
+  |partialSol| <= |jobs|  && forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j])
 }
 
 
@@ -56,41 +59,6 @@ function PartialSolProfit(solution: seq<int>, jobs: seq<Job>, index: int): int
 {
 
   if index == |solution| then 0 else solution[index] * jobs[index].profit + PartialSolProfit(solution, jobs, index + 1)
-}
-
-
-predicate hasNoOverlappingJobs(partialSol: seq<int>, jobs: seq<Job>)
-  requires validJobsSeq(jobs)
-{
-  |partialSol| <= |jobs|  && forall i, j :: 0 <= i < j < |partialSol| ==> (partialSol[i] == 1 && partialSol[j] == 1) ==> !overlappingJobs(jobs[i], jobs[j])
-}
-
-predicate areOrderedByEnd(partialSol: seq<int>, jobs: seq<Job>)
-  requires validJobsSeq(jobs)
-{
-  |partialSol| <= |jobs|  && forall i, j :: 0 <= i < j < |partialSol| ==>
-                                              (partialSol[i] == 1 && partialSol[j] == 1) ==> JobComparator(jobs[i], jobs[j])
-}
-
-//demonstram ca functia profit este asociativa prin inductie
-lemma AssociativityOfProfitFunc(partialSolPrefix : seq<int>, jobs: seq<Job>, val: int, index: int)
-  requires 1 <= |jobs|
-  requires validJobsSeq(jobs)
-  requires 0 <= index <= |partialSolPrefix|
-  requires 0 <= val <= 1
-  requires 0 <= |partialSolPrefix| < |jobs| //pentru a ne asiguram ca nu depasim nr de job-uri
-  decreases |partialSolPrefix| - index
-  ensures PartialSolProfit(partialSolPrefix, jobs, index) + val * jobs[|partialSolPrefix|].profit ==
-          PartialSolProfit(partialSolPrefix + [val], jobs, index)
-{
-  //inductie prin recursivitate
-  if |partialSolPrefix| == index { //pentru ultima valoare se demonstreaza
-
-  }
-  else
-  {
-    AssociativityOfProfitFunc(partialSolPrefix , jobs, val, index + 1);
-  }
 }
 
 
@@ -150,7 +118,8 @@ ghost predicate isOptimalSolution(solution: seq<int>, jobs: seq<Job>)
   requires |solution| == |jobs|
 {
   isSolution(solution, jobs) &&
-  forall otherSol :: isSolution(otherSol, jobs) ==>  PartialSolProfit(solution, jobs, 0) >=  PartialSolProfit(otherSol, jobs, 0)
+  forall otherSol :: isSolution(otherSol, jobs) ==> PartialSolProfit(solution, jobs, 0) >=  PartialSolProfit(otherSol, jobs, 0)
+    //HasLessProf(otherSol, jobs, PartialSolProfit(solution, jobs, 0), 0)
 }
 
 predicate containsOnlyZeros(partialSol: seq<int>)
@@ -194,6 +163,28 @@ function ProfitParSolStartFinishPos(solution: seq<int>, jobs: seq<Job>, startPos
 {
 
   if startPos == endPos then 0 else solution[startPos] * jobs[startPos].profit + ProfitParSolStartFinishPos(solution, jobs, startPos + 1, endPos)
+}
+
+
+//demonstram ca functia profit este asociativa prin inductie
+lemma AssociativityOfProfitFunc(partialSolPrefix : seq<int>, jobs: seq<Job>, val: int, index: int)
+  requires 1 <= |jobs|
+  requires validJobsSeq(jobs)
+  requires 0 <= index <= |partialSolPrefix|
+  requires 0 <= val <= 1
+  requires 0 <= |partialSolPrefix| < |jobs| //pentru a ne asiguram ca nu depasim nr de job-uri
+  decreases |partialSolPrefix| - index
+  ensures PartialSolProfit(partialSolPrefix, jobs, index) + val * jobs[|partialSolPrefix|].profit ==
+          PartialSolProfit(partialSolPrefix + [val], jobs, index)
+{
+  //inductie prin recursivitate
+  if |partialSolPrefix| == index { //pentru ultima valoare se demonstreaza
+
+  }
+  else
+  {
+    AssociativityOfProfitFunc(partialSolPrefix , jobs, val, index + 1);
+  }
 }
 
 // + o lemma in care demonstres PartialSolutionPrefix(partialSol, jobs, j + 1) ==  ProfitParSolStartFinishPos(solution, jobs, j + 1, |solution|) //scoatem jobs[i].profits
