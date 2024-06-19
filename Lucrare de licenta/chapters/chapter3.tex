@@ -35,7 +35,7 @@ unde:
     \item \texttt{Job} este numele tipului de date, 
     \item \texttt{Tuple} este singurul constructor,
     \item iar \texttt{jobStart, jobEnd, profit} sunt destructori.
-\end{itemize}  \\
+\end{itemize}
 
 Problema de selecție a activităților are ca date de intrare un singur parametru:
 \begin{itemize}
@@ -53,8 +53,9 @@ Profitul am ales sa fie pozitiv, deoarece activitățile cu un profit negativ ar
 \PY{k+kd}{predicate} \PY{n+nf}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{:} \PY{n}{Job}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{n}{job}\PY{p}{.}\PY{n}{jobStart} \PY{o}{\PYZlt{}} \PY{n}{job}\PY{p}{.}\PY{n}{jobEnd} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{job}\PY{p}{.}\PY{n}{profit} \PY{o}{\PYZgt{}=} \PY{l+m+mi}{0}
-\PY{p}{\PYZcb{}} \end{Verbatim} 
-    \item Predicatul \texttt{validJobsSeq(jobs: seq<Job>)} verifică proprietatea de \texttt{validJob} pentru toată secvența de activități primită ca date de intrare. \begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
+\PY{p}{\PYZcb{}} 
+\end{Verbatim} 
+    \item Predicatul \texttt{validJobsSeq(jobs: seq<Job>)} verifică proprietatea de \\\texttt{validJob} pentru toată secvența de activități primită ca date de intrare. \begin{Verbatim}[commandchars=\\\{\},fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{)}
 \PY{p}{\PYZob{}}
   \PY{k}{forall} \PY{n}{job} \PY{p}{::} \PY{n}{job} \PY{o}{in} \PY{n}{jobs} \PY{o}{==}\PY{o}{\PYZgt{}} \PY{n}{validJob}\PY{p}{(}\PY{n}{job}\PY{p}{)}
@@ -131,7 +132,7 @@ Predicatele pe care le-am folosit pentru validarea soluțiilor parțiale sunt:
 \PY{p}{\PYZcb{}} 
 \end{Verbatim}
     \item 
-    Cu ajutorul predicatul \texttt{isPartialSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} am verificat proprietatea de soluție parțială: secvența să conțină doar valori de 0 și 1, activitățile care corespund acestui vector caracteristic să nu se suprapună și să aibă lungimea dorită. 
+    Cu ajutorul predicatului \texttt{isPartialSol(partialSol: seq$<$int$>$, jobs: seq$<$Job$>$, length: int)} am verificat proprietatea de soluție parțială: secvența să conțină doar valori de 0 și 1, activitățile care corespund acestui vector caracteristic să nu se suprapună și să aibă lungimea dorită. 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} 
 \PY{n}{length}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
