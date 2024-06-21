@@ -106,7 +106,8 @@ Putem observa că timpul de verificare este foarte bun, valoarea cea mai mare  f
 Această lema demonstrează pentru o soluție parțială care conține activitatea de pe poziția \texttt{i}, că profitul de la poziția \texttt{j + 1} până la poziția \texttt{i} este \texttt{jobs[i].profit}, știind că nicio activitate nu a fost selectată pe aceste poziții (avem doar 0-uri).
 
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
-\PY{k+kd}{lemma} \PY{n+nf}{ComputeProfitWhenOnly0BetweenJI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{j}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
+\PY{k+kd}{lemma} \PY{n+nf}{ComputeProfitWhenOnly0BetweenJI}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{i}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,}
+\PY{n}{j}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{n}{validJobsSeq}\PY{p}{(}\PY{n}{jobs}\PY{p}{)}
   \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}=} \PY{n}{j} \PY{o}{\PYZlt{}} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{\PYZlt{}=} \PY{o}{|}\PY{n}{jobs}\PY{o}{|}
   \PY{k}{requires} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i} \PY{o}{+} \PY{l+m+mi}{1}

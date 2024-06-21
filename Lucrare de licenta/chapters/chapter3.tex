@@ -497,7 +497,7 @@ Iată cum funcționează algoritmul:
     \item \textbf{Comparăm} profitul soluției parțiale optime (\texttt{maxProfit}) ce conține activitatea de pe poziția \texttt{i} cu profitul care s-ar obține fără activitatea curentă (\texttt{dp[i-1]}) și \textbf{actualizăm} valoarea variabilelor \texttt{dp} și \texttt{solution}
     \begin{itemize}
         \item dacă \texttt{dp[i-1]} $>$= \textbf{profitul} soluției parțiale optime cu activitatea i \\(\texttt{maxProfit}), atunci \texttt{dp[i] = dp[i-1]} și \texttt{solution = solution + [0]}
-        \item dacă \texttt{dp[i-1] $<$} \textbf{profitul} soluției parțiale optime cu activitatea i \\(\texttt{maxProfit}), atunci \texttt{dp[i] = maxProfit} (profitul soluției parțiale optime cu activitatea i) și \texttt{solution} = soluția parțială optimă ce conține activitatea i  (\texttt{optParSolWithI}) 
+        \item dacă \texttt{dp[i-1] $<$} \textbf{profitul} soluției parțiale optime cu activitatea i \\(\texttt{maxProfit}), atunci \texttt{dp[i] = maxProfit} (profitul soluției parțiale optime cu activitatea i) și \texttt{solution} = soluția parțială optimă ce conține activitatea i \\(\texttt{optParSolWithI}) 
     \end{itemize}
     \item \textbf{Actualizăm valoarea variabilei \texttt{allSol}} care reține soluțiile parțiale optime obținute la fiecare iterație, \texttt{allSol = allSol + [solution]} 
     \end{itemize}
