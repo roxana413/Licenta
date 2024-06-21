@@ -28,12 +28,12 @@
 Programarea dinamică este o tehnică de proiectare a algoritmilor utilizată pentru rezolvarea problemelor de optimizare.
 Pentru a rezolva o anumită problemă folosind programarea dinamică, trebuie să identificăm în mod convenabil mai multe subprobleme.
 După ce alegem subproblemele, trebuie să stabilim cum se poate calcula soluția unei subprobleme în funcție de alte subprobleme mai mici.
-Principala idee din spatele programării dinamice constă în stocarea rezultatelor subproblemele pentru a evita recalcularea lor de fiecare dată când sunt necesare. În general, programarea dinamică se aplică pentru probleme de optimizare pentru care algoritmii greedy nu produc în general soluția optimă \cite{Curs}. 
+Principala idee din spatele programării dinamice constă în stocarea rezultatelor subproblemele pentru a evita recalcularea lor de fiecare dată când sunt necesare. În general, programarea dinamică se aplică pentru probleme de optimizare pentru care algoritmii greedy nu produc în general soluția optimă \citep{Curs}. 
 
 \section{Avantajele programării dinamice față de celelalte tehnici de proiectare}
 În ceea ce privește programarea dinamică și tehnica greedy, 
 în ambele cazuri apare noțiunea de subproblemă și proprietatea de substructură optimă. De fapt, tehnica greedy poate fi gândită ca un caz particular de programare dinamică, unde rezolvarea unei probleme este determinată direct de alegerea greedy, nefiind nevoie de a
-enumera toate alegerile posibile \cite{Curs}. Avantajele programării dinamice fața de tehnica greedy sunt:
+enumera toate alegerile posibile \citep{Curs}. Avantajele programării dinamice fața de tehnica greedy sunt:
 \begin{itemize}
   \item \textbf {Optimizare Globală}: : Programarea dinamică are capacitatea de a găsi soluția optimă globală pentru o clasă mai mare de probleme, în timp ce algoritmii greedy pot fi limitați la luarea deciziilor locale care pot duce la o soluție suboptimală.
   
@@ -42,22 +42,29 @@ Cu toate acestea, algoritmii greedy pot fi mai potriviți pentru problemele care
 
 
 \section{Ce este problema de selecție a activităților cu profit maxim ?}
-Problema de selecție a activităților cu profit maxim este o problema de optimizare. Dându-se o listă de activități distincte caracterizate prin timp de început, timp de încheiere și profit, ordonate dupa timpul de încheiere se cere o secventă de activități care nu se suprapun două câte două și care produc un profit maxim. 
+Problema de selecție a activităților cu profit maxim este o problema de optimizare. Dându-se o listă de activități distincte caracterizate prin timp de început, timp de încheiere și profit, ordonate după timpul de încheiere se cere o secventă de activități care nu se suprapun două câte două și care produc un profit maxim. 
 Spre exemplu, pentru următoarele date de intrare:
-\begin{lstlisting}
-     O secventa de activitati caracterizate prin
-    { timp de inceput, timp de incheiere,  profit}
-       Activitate 1:  {1, 2, 50} 
-       Activitate 2:  {3, 5, 20}
-       Activitate 3:  {6, 19, 100}
-       Activitate 4:  {2, 100, 200}
-\end{lstlisting}
-profitul maxim este 250, pentru soluția optimă formată din Activitatea 1 si Activitatea 4.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Timp de început & Timp de încheiere  & Profit \\
+\hline
+1  &  2   & 50   \\
+3   & 5   & 20   \\
+6   & 19   & 100   \\
+2 & 100 & 200 \\
+\hline
+\end{tabular}
+\caption{Date de intrare}
+\label{tab:simple_table}
+\end{table}
+profitul maxim este 250, pentru soluția optimă formată din Activitatea 1 și Activitatea 4.
 
-\section{Cum funcționeaza programarea dinamică în cazul problemei de selectie a activitatilor}
-Pentru problema de selectie a activitatilor se poate folosi programarea dinamică, deoarece aceasta poate fi împarțită în subprobleme, respectiv la fiecare pas putem forma o soluție parțiala optimă, de al carei profit ne putem folosi la următorul pas. O \textbf{subproblemă} este problema inițială caracterizată de un index. Mai exact, în subproblemă sunt disponibile doar activitățile de la 0 la index - 1 din secvența de activități primită ca date de intarare.
+\section{Cum funcționează programarea dinamică în cazul problemei de selecție a activităților}
+Pentru problema de selecție a activităților se poate folosi programarea dinamică, deoarece aceasta poate fi împărțită în subprobleme, respectiv la fiecare pas putem forma o soluție parțiala optimă, de al cărei profit ne putem folosi la următorul pas. O \textbf{subproblemă} este caracterizată de un index în secvența de activități. Semnificația indexului, în subproblemă, este că sunt disponibile doar activitățile de la 0 la \texttt{index - 1} din secvența de activități primită ca date de intrare.
 
-De exemplu, o subproblema pentru datele de intrare de mai sus cu indexul 2, este formată din activitățile de pe poziția 0 până la poziția 2 : \textbf{Activitatea 1, Activitatea 2 și Actvitatea 3}. 
+De exemplu, o subproblema pentru datele de intrare de mai sus cu indexul 2, este formată din activitățile de pe poziția 0 până la poziția 2 : \textbf{Activitatea 1, Activitatea 2 și Activitatea 3}. 
 
 \section{Pseudocod}
 Iată cum putem rezolva în pseudocod algoritmul pentru problema de selecție a activităților cu profit maxim folosind programarea dinamică. 
@@ -78,8 +85,6 @@ function planificareActivitatiPonderate(activitati):
         // Gaseste cea mai recenta activitate care nu intra in conflict cu activitatea curenta
         solutiaCuActivitateaI = [1] // selectam activitatea curenta
         ultimaActivitateNeconflictuala = gasesteUltimaActivitateNeconflictuala(activitati, i)
-        
-        // Calculează profitul maxim incluzand activitatea curenta si excluzand-o
         profitulCuActivitateaCurenta = activitati[i].profit
         daca ultimaActivitateNeconflictuala != -1:
             profitulIncluderiiActivitatiiCurente += dp[ultimaActivitateNeconflictuala]
@@ -101,31 +106,31 @@ function gasesteUltimaActivitateNeconflictuala(activitati, indexCurent):
     return -1
 \end{lstlisting}
 
-\subsection{Soluția parțială si soluția parțială optimă}
-O soluție parțială conține doar activitățile din subproblemă care nu se suprapun. O soluție parțială este optimă, daca profitul acesteia este mai mare sau egal decat al oricărei alte soluții parțiale pentru aceeași subproblemă. Pentru a reprezenta o soluție parțiala folosim un vector caracteristic, unde 0 înseamna ca activitatea nu a fost selectată, iar 1 că activitatea a fost selectată. \\ 
+\subsection{Soluția parțială și soluția parțială optimă}
+O soluție parțială conține doar activitățile din subproblemă care nu se suprapun. O soluție parțială este optimă, dacă profitul acesteia este mai mare sau egal decât al oricărei alte soluții parțiale pentru aceeași subproblemă. Pentru a reprezenta o soluție parțiala folosim un vector caracteristic, unde 0 înseamna ca activitatea nu a fost selectată, iar 1 că activitatea a fost selectată. \\ 
 
- Spre exemplu, o soluția parțială pentru subroblema ce conține toate activitățile primite ca date de intare este formată din Activitatea 1, Activitatea 2, Activitatea 3 și are valoarea [1, 1, 1, 0]. În schimb, soluția optimă pentru aceasta subproblemă este formată din Activitatea 1 și Activitatea 4 și este egală cu [1, 0, 0, 1]. \\
+ Spre exemplu, o soluția parțială pentru subproblema ce conține toate activitățile primite ca date de intrare este formată din Activitatea 1, Activitatea 2, Activitatea 3 și are valoarea [1, 1, 1, 0]. În schimb, soluția optimă pentru aceasta subproblemă, [1, 0, 0, 1] este formată din Activitatea 1 și Activitatea 4. \\
 
-Pentru datele de intrare menționate de mai sus se obțin urmatoarele soluții parțiale optime:\\
-\textbf{Pentru prima subproblemă}:
+Pentru datele de intrare menționate de mai sus, subproblemele și soluțiile optime sunt :\\
+\textbf{Pentru prima subproblemă} (în care este disponibilă doar prima activitate):
 \begin{enumerate}
     \item soluția parțiala optimă este formata din Activitatea 1.
     \item iar profit-ul maxim este 50. \\
 \end{enumerate}
-\textbf{Pentru a doua subproblemă}:
+\textbf{Pentru a doua subproblemă} (în care sunt disponibile primele două activități):
 \begin{enumerate}
     \item deoarece Activitatea 1 nu se suprapune cu Activitatea 2 se obține soluția parțială optimă formata din Activitatea 1 și Activitatea 2.
-    \item profitul optim la pasul 2 este 50 + 20 = 70, care este mai mare decat cel anterior (condiție necesară).
+    \item profitul optim la pasul 2 este 50 + 20 = 70, care este mai mare decât cel anterior (condiție necesară).
 \end{enumerate}
-\textbf{Pentru a treia subproblemă}:
+\textbf{Pentru a treia subproblemă} (în care sunt disponibile primele trei activități):
 \begin{enumerate}
-    \item soluția parțială optimă este formată din Activitatea 1, Activitatea 2 și Activitatea 3, deoarece Activitatea 3 nu se suprapune cu activitatea 2 ( înseamnă că nu se suprapune cu soluția parțiala de la al 2-lea pas, fiind ordonate dupa timpul se sfârsit) si le putem concatena.
-    \item profitul pentru această soluție parțiala este strict mai mare decat cel de la pasul 2, noul profit optim devenind 170. \\
+    \item soluția parțială optimă este formată din Activitatea 1, Activitatea 2 și Activitatea 3, deoarece Activitatea 3 nu se suprapune cu activitatea 2 ( înseamnă că nu se suprapune cu soluția parțiala de la al 2-lea pas, fiind ordonate după timpul de sfârșit) și le putem concatena.
+    \item profitul pentru această soluție parțiala este strict mai mare decât cel de la pasul 2, noul profit optim devenind 170. \\
 \end{enumerate}
-\textbf{Pentru a patra subproblemă}:
+\textbf{Pentru a patra subproblemă} (în care sunt disponibile toate activitățile):
 \begin{enumerate}
-    \item soluția parțială ce conține Activitatea 4 este formata din Activitatea 4 si Activitatea 1.
-    \item profitul pentru aceasta soluție parțiala este strict mai mare decat profitul optim anterior = 170, noul profit optim devenind 250.
+    \item soluția parțială ce conține Activitatea 4 este formata din Activitatea 4 și Activitatea 1.
+    \item profitul pentru aceasta soluție parțiala este strict mai mare decât profitul optim anterior = 170, noul profit optim devenind 250.
 \end{enumerate} 
 Astfel, soluția problemei este cea de la ultimul pas, fiind formata din Activitatea 1 și Activitatea 4  cu profitul optim 250. 
 

@@ -2,13 +2,17 @@
 \section{Prezentare generală}
 
 Dafny este un limbaj imperativ de nivel înalt cu suport pentru programarea orientată pe obiecte. Subprogramele în Dafny se numesc metode.  Metodele implementate în Dafny
-pot avea precondiții, postcondiții și invarianți care sunt verificate la compilare, bazându-se pe solverul SMT Z3. În cazul în care o postcondiție nu poate fi demonstrată (fie din cauza unui timeout, fie din cauza faptului că aceasta nu este validă), compilarea eșuează. Prin urmare, putem avea un grad ridicat de încredere într-un program verificat cu ajutorul sistemului Dafny.
+pot avea precondiții, postcondiții și invarianți care sunt verificate la compilare, bazându-se pe solverul SMT Z3 \citep{DBLP:conf/tacas/MouraB08}. În cazul în care o postcondiție nu poate fi demonstrată (fie din cauza unui timeout, fie din cauza faptului că aceasta nu este validă), compilarea eșuează. Prin urmare, putem avea un grad ridicat de încredere într-un program verificat cu ajutorul sistemului Dafny.
 Acesta a fost conceput pentru a facilita scrierea de programe fară erori de execuție și corecte în sensul că respectă specificația.\\
-Dafny \cite{DBLP:journals/corr/abs-1909-01743}, ca platformă de verificare,  permite programatorului să specifice comportamentul dorit al programelor sale, astfel încât acesta să verifice dacă implementarea efectivă este conformă cu acel comportament. Cu toate acestea, acest proces nu este complet automat iar uneori programatorul trebuie să ghideze verificatorul \cite{DBLP:journals/jlap/BlazquezMS23}.\\
-
-Exemplu de cod Dafny:
+Dafny \citep{dafny-reference-manual}, ca platformă de verificare,  permite programatorului să specifice comportamentul dorit al programelor sale, astfel încât acesta să verifice dacă implementarea efectivă este conformă cu acel comportament. Cu toate acestea, acest proces nu este complet automat iar uneori programatorul trebuie să ghideze verificatorul \citep{dafny-reference-manual}.\\
+Următoarele implementări au fost verificate în Dafny:
+\begin{itemize}
+    \item algoritmul DPLL \citep{DBLP:journals/corr/abs-1909-01743};
+    \item structurilor de date liniare mutabile și algoritmi bazați pe iteratori \citep{DBLP:journals/jlap/BlazquezMS23}.
+\end{itemize}
+Iată un exemplu de cod preluat din manualul Dafny:
 \begin{small}
-\begin{Verbatim}[commandchars=\\\{\}, fontsize=\small]
+\begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{method} \PY{n+nf}{MultipleReturns}\PY{p}{(}\PY{n}{x}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{y}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)} \PY{k}{returns} \PY{p}{(}\PY{n}{more}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,} \PY{n}{less}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
   \PY{k}{requires} \PY{l+m+mi}{0} \PY{o}{\PYZlt{}} \PY{n}{y}
   \PY{k}{ensures} \PY{n}{less} \PY{o}{\PYZlt{}} \PY{n}{x} \PY{o}{\PYZlt{}} \PY{n}{more}
@@ -18,3 +22,4 @@ Exemplu de cod Dafny:
 \PY{p}{\PYZcb{}}
 \end{Verbatim}
 \end{small}
+Acestă metoda primește ca parametri variabilele \texttt{x} si \texttt{y}, unde \texttt{y} trebuie sa respecte precondiția \texttt{requires 0 < y}, adică y sa fie strict pozitiv. Aceasta metodă calculează suma și diferența dintre \texttt{x} și \texttt{y} pe care le returnează în variabilele \texttt{more} și \texttt{less}. Postcondiția care trebuie sa fie îndeplinită la ieșirea din metodă este \texttt{ensures less < x < more}. 
