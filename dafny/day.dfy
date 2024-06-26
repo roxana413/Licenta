@@ -908,7 +908,6 @@ method WeightedJobScheduling(jobs: seq<Job>) returns (sol: seq<int>, profit : in
   profit := dp[|dp|-1]; //ultimul profit este maxim
 }
 
-
 method Main()
 {
   var job1: Job := Tuple(jobStart := 1, jobEnd := 2, profit := 50);
@@ -926,5 +925,4 @@ method Main()
   print (solutie);
   print (profit);
   //solutia trebuie sa contina valori 0, 1 , sa fie de lungime |jobs|, job-uri care nu se suprapun si sa fie de profit maxim
-
 }
