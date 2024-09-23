@@ -182,7 +182,7 @@ O soluție parțială optimă este o soluție parțială care aduce un profit ma
 Pentru a valida soluțiile parțiale am folosit următoarele predicate: 
 
 \begin{itemize}
-    \item Predicatul \texttt{HasLessProfit} verifică profitul unei secvențe să fie mai mic sau egal cu un \texttt{maxProfit}. 
+    \item Predicatul \texttt{hasLessProf} verifică profitul unei secvențe să fie mai mic sau egal cu un \texttt{maxProfit}. 
     \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k+kd}{predicate} \PY{n+nf}{HasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{k+kt}{int}\PY{o}{\PYZgt{}}\PY{p}{,} \PY{n}{jobs}\PY{p}{:} \PY{k+kt}{seq}\PY{o}{\PYZlt{}}\PY{n}{Job}\PY{o}{\PYZgt{}}\PY{p}{,}  
 \PY{n}{maxProfit}\PY{p}{:} \PY{k+kt}{int}\PY{p}{,}\PY{n}{position}\PY{p}{:} \PY{k+kt}{int}\PY{p}{)}
@@ -380,8 +380,8 @@ La fiecare iterație a algoritmului, următoarele proprietăți sunt invarianți
 Un invariant foarte important este:
 \begin{Verbatim}[commandchars=\\\{\}, fontsize=\footnotesize]
 \PY{k}{invariant} \PY{k}{forall} \PY{n}{partialSol} \PY{p}{::} \PY{o}{|}\PY{n}{partialSol}\PY{o}{|} \PY{o}{==} \PY{n}{i}
-  \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSolution}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}} 
-  \PY{n}{HasLessProfit}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+  \PY{o}{\PYZam{}\PYZam{}} \PY{n}{isPartialSol}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{i}\PY{p}{)} \PY{o}{==}\PY{o}{\PYZgt{}} 
+  \PY{n}{hasLessProf}\PY{p}{(}\PY{n}{partialSol}\PY{p}{,} \PY{n}{jobs}\PY{p}{,} \PY{n}{dp}\PY{p}{[}\PY{n}{i} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
 \end{Verbatim}
 deoarece cu ajutorul lui ne asigurăm că la fiecare pas variabila \texttt{dp} reține profitul optim. 
 
@@ -547,7 +547,7 @@ Variabila de ieșire, \texttt{sol}, este reprezentată printr-un vector caracter
 \section{Leme importante în demonstrarea corectitudinii}
 Unul din punctele complexe în dezvoltarea codului de verificare pentru problema de selecție a activităților a fost atunci când a trebuit să recurg la leme pentru a demonstra anumite proprietăți. Lemele reprezintă blocuri de instrucțiuni care au ca scop demonstrarea unor teoreme pe care Dafny nu reușește să le demonstreze de unul singur.
 
-Am folosit lema \texttt{OtherSolHasLessProfitThenMaxProfit2} pentru a demonstra că orice \textbf{soluție parțială}:
+Am folosit lema \texttt{OtherSolhasLessProfThenMaxProfit2} pentru a demonstra că orice \textbf{soluție parțială}:
 \begin{enumerate}
     \item care \textbf{conține activitatea de pe poziția \texttt{i}}
     \item pentru care activitățile de pe pozițiile \texttt{j + 1, ..., i - 1} \textbf{se suprapune cu activitatea \texttt{i}}, unde \texttt{0 $<=$ j $<$ i}
